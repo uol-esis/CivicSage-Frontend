@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+body{
+  background-color: #FEFAFA;
+}
+
+.cards{
+  display: flex;
+  justify-content: space-around;
+}
+
+.card-text{
+  color: var(--gray-900, var(--gray-900, #111928));
+
+  /* leading-tight/text-2xl/font-bold */
+  font-family: Inter;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 125%; /* 30px */
+  
+}
+
+.card{
+  display: flex;
+  width: 440px;
+  height: 550px;
+  padding: var(--0, 0px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--0, 0px);
+  flex-shrink: 0;
+}
+
+.card-body{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  padding: 15px;
+}
