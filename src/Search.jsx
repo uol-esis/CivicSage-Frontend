@@ -1,12 +1,27 @@
 import React, { useState } from 'react';
+import * as CivicSage from 'civic_sage';
 
 export default function Search() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
   const handleSearch = () => {
-    // Placeholder for search logic
-    setResults([`Result for "${query}"`, `Another result for "${query}"`]);
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let searchQuery = new CivicSage.SearchQuery(); // SearchQuery | 
+    /*let opts = {
+      'pageNumber': 0, // Number | Page number
+      'pageSize': 20 // Number | Page size
+    };*/
+    apiInstance.searchFiles(searchQuery, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Error searching files. Please try again.');
+      } else {
+        console.log('API called successfully. Returned data: ' + data);
+        setResults(data.results || []);
+      }
+    });
   };
 
   return (

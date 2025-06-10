@@ -1,13 +1,38 @@
 import React, { useState } from 'react';
 import UploadComponent from './components/UploadComponent';
+import * as CivicSage from 'civic_sage';
 
 export default function Upload() {
   const [inputValue, setInputValue] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isValidFile, setIsValidFile] = useState(false);
 
-  const handleConfirm = () => {
-    alert(`Input: ${inputValue}`);
+  const handleConfirmWebsite = (inputValue) => {
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let indexWebsiteRequest = new CivicSage.IndexWebsiteRequest(inputValue); // IndexWebsiteRequest | 
+    apiInstance.indexWebsite(indexWebsiteRequest, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Error adding website to the database.');
+      } else {
+        console.log('API called successfully.');
+        alert(`${inputValue} added to the database.`);
+      }
+    });
+  };
+
+  const handleConfirmFile = () => {
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let file = selectedFile; // File | 
+      apiInstance.indexFiles(file, (error, data, response) => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log('API called successfully.');
+        }
+      });
   };
 
   return (
@@ -26,7 +51,7 @@ export default function Upload() {
         className="border border-gray-300 rounded px-4 py-2 w-full mt-2"
       />
       <button
-        onClick={handleConfirm}
+        onClick={() => handleConfirmWebsite(inputValue)}
         className="py-2 my-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
       >
         Bestätigen
@@ -46,7 +71,7 @@ export default function Upload() {
         <UploadComponent setFile={setSelectedFile} setValid={setIsValidFile} />  
       </div>
       <button
-        onClick={handleConfirm}
+        onClick={handleConfirmFile}
         className="py-2 mt-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
       >
         Bestätigen

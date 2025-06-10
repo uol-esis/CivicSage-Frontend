@@ -17,7 +17,7 @@ export default function Sidebar() {
   const currentPath = window.location.pathname;
 
   return (
-    <nav className="fixed top-0 left-0 bg-gray-100 h-full shadow-lg transition-all duration-300 hover:w-30 w-12 group flex flex-col">
+    <nav className="fixed top-0 left-0 z-50 bg-gray-100 h-full shadow-lg transition-all duration-300 hover:w-30 w-12 group flex flex-col">
       <a href="/">
         <span className="sr-only">Your Company</span>
         <img
