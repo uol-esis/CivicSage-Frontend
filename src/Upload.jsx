@@ -6,8 +6,9 @@ export default function Upload() {
   const [inputValue, setInputValue] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isValidFile, setIsValidFile] = useState(false);
+  const [resetUpload, setResetUpload] = useState(false);
 
-  const handleConfirmWebsite = (inputValue) => {
+  const handleConfirmWebsite = () => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
     let indexWebsiteRequest = new CivicSage.IndexWebsiteRequest(inputValue); // IndexWebsiteRequest | 
@@ -18,6 +19,7 @@ export default function Upload() {
       } else {
         console.log('API called successfully.');
         alert(`${inputValue} added to the database.`);
+        setInputValue(''); // Clear the input field after successful submission
       }
     });
   };
@@ -29,8 +31,12 @@ export default function Upload() {
       apiInstance.indexFiles(file, (error, data, response) => {
         if (error) {
           console.error(error);
+          alert('Error adding website to the database.');
         } else {
           console.log('API called successfully.');
+          alert(`${selectedFile.name} added to the database.`);
+          setSelectedFile(null); // Clear the selected file after successful submission
+          setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
         }
       });
   };
@@ -51,7 +57,7 @@ export default function Upload() {
         className="border border-gray-300 rounded px-4 py-2 w-full mt-2"
       />
       <button
-        onClick={() => handleConfirmWebsite(inputValue)}
+        onClick={handleConfirmWebsite}
         className="py-2 my-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
       >
         Bestätigen
@@ -68,7 +74,7 @@ export default function Upload() {
     {/* Drag-and-Drop Upload */}
     <div className="flex flex-col mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
       <div className="flex-1 flex flex-col">
-        <UploadComponent setFile={setSelectedFile} setValid={setIsValidFile} />  
+        <UploadComponent setFile={setSelectedFile} setValid={setIsValidFile} reset={resetUpload} />  
       </div>
       <button
         onClick={handleConfirmFile}

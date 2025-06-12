@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-export default function UploadComponent({setFile, setValid}){
+export default function UploadComponent({setFile, setValid, reset}) {
 
     const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null); // Reference for the hidden input element
@@ -16,7 +16,6 @@ export default function UploadComponent({setFile, setValid}){
         }
     }, [isValidFile]);
    
-    
     useEffect(() => {
       if (selectedFile) {
         const isValid = selectedFile.name.endsWith(".pdf") || selectedFile.name.endsWith(".txt") || selectedFile.name.endsWith(".docx") || selectedFile.name.endsWith(".odt");
@@ -25,6 +24,12 @@ export default function UploadComponent({setFile, setValid}){
         setIsValidFile(false);
       }
     }, [selectedFile]);
+
+    useEffect(() => {
+      setSelectedFile(null);
+      setValid(false);
+      // reset other internal state if needed
+    }, [reset]);
 
     const handleDragOver = (event) => {
         event.preventDefault();
