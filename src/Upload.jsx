@@ -5,10 +5,14 @@ import * as CivicSage from 'civic_sage';
 export default function Upload() {
   const [inputValue, setInputValue] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isValidFile, setIsValidFile] = useState(false);
   const [resetUpload, setResetUpload] = useState(false);
+  const [isWebsiteButtonDisabled, setIsWebsiteButtonDisabled] = useState(false);
+  const [isUploadButtonDisabled, setIsUploadButtonDisabled] = useState(false);
 
   const handleConfirmWebsite = () => {
+    setIsWebsiteButtonDisabled(true); // Disable the button
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
     let indexWebsiteRequest = new CivicSage.IndexWebsiteRequest(inputValue); // IndexWebsiteRequest | 
@@ -21,24 +25,67 @@ export default function Upload() {
         alert(`${inputValue} added to the database.`);
         setInputValue(''); // Clear the input field after successful submission
       }
+      setIsWebsiteButtonDisabled(false); // Re-enable the button
     });
   };
 
-  const handleConfirmFile = () => {
+  {/*
+  const handleConfirmUpload = () => {
+    let filesToUpload = []; 
+    
+    if (selectedUpload && selectedUpload.isFile()) {
+      setSelectedFiles([selectedUpload]);
+      handleConfirmFiles();
+    } else if (selectedUpload && selectedUpload.isDirectory()) {
+      for (const file of selectedUpload.files) {
+        if (file.isFile()) {
+          setSelectedFiles(prevFiles => [...prevFiles, file]);
+        }
+      }
+      handleConfirmFiles();
+    } else {
+      alert('Please select a valid file or directory.');
+    }
+    return;
+  };  
+
+
+
+  const handleConfirmFiles = () => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
-    let file = selectedFile; // File | 
-      apiInstance.indexFiles(file, (error, data, response) => {
+    let files = selectedFiles; // File | 
+      apiInstance.indexFiles(files, (error, data, response) => {
         if (error) {
           console.error(error);
           alert('Error adding website to the database.');
         } else {
           console.log('API called successfully.');
-          alert(`${selectedFile.name} added to the database.`);
-          setSelectedFile(null); // Clear the selected file after successful submission
+          alert(`SUCCESS! ${files.map(file => file.name).join(', ')} added to the database.`);
+          setSelectedFiles([]); // Clear the selected files after successful submission
           setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
         }
       });
+  };
+  */}
+
+  const handleConfirmFile = () => {
+    setIsUploadButtonDisabled(true); // Disable the upload button
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let files = [selectedFile]; // File |
+    apiInstance.indexFiles(files, {}, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Error adding file to the database.');
+      } else {
+        console.log('API called successfully.');
+        alert(`SUCCESS! ${selectedFile.name} added to the database.`);
+        setSelectedFile(null); // Clear the selected files after successful submission
+        setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
+      }
+      setIsUploadButtonDisabled(false); // Re-enable the upload button
+    });
   };
 
   return (
@@ -58,7 +105,8 @@ export default function Upload() {
       />
       <button
         onClick={handleConfirmWebsite}
-        className="py-2 my-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        disabled={isWebsiteButtonDisabled}
+        className={`py-2 my-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
       >
         Bestätigen
       </button>
@@ -78,7 +126,8 @@ export default function Upload() {
       </div>
       <button
         onClick={handleConfirmFile}
-        className="py-2 mt-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        disabled={isUploadButtonDisabled}
+        className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isUploadButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
       >
         Bestätigen
       </button>
