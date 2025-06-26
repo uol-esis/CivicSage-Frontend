@@ -4,7 +4,8 @@ import * as CivicSage from 'civic_sage';
 
 export default function Upload() {
   const [inputValue, setInputValue] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedUpload, setSelectedUpload] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isValidFile, setIsValidFile] = useState(false);
   const [resetUpload, setResetUpload] = useState(false);
 
@@ -24,18 +25,39 @@ export default function Upload() {
     });
   };
 
-  const handleConfirmFile = () => {
+  const handleConfirmUpload = () => {
+    let filesToUpload = []; 
+    
+    if (selectedUpload && selectedUpload.isFile()) {
+      setSelectedFiles([selectedUpload]);
+      handleConfirmFiles();
+    } else if (selectedUpload && selectedUpload.isDirectory()) {
+      for (const file of selectedUpload.files) {
+        if (file.isFile()) {
+          setSelectedFiles(prevFiles => [...prevFiles, file]);
+        }
+      }
+      handleConfirmFiles();
+    } else {
+      alert('Please select a valid file or directory.');
+    }
+    return;
+  };  
+
+
+
+  const handleConfirmFiles = () => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
-    let file = selectedFile; // File | 
-      apiInstance.indexFiles(file, (error, data, response) => {
+    let files = selectedFiles; // File | 
+      apiInstance.indexFiles(files, (error, data, response) => {
         if (error) {
           console.error(error);
           alert('Error adding website to the database.');
         } else {
           console.log('API called successfully.');
-          alert(`${selectedFile.name} added to the database.`);
-          setSelectedFile(null); // Clear the selected file after successful submission
+          alert(`${files.map(file => file.name).join(', ')} added to the database.`);
+          setSelectedFiles([]); // Clear the selected files after successful submission
           setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
         }
       });
@@ -74,10 +96,10 @@ export default function Upload() {
     {/* Drag-and-Drop Upload */}
     <div className="flex flex-col mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
       <div className="flex-1 flex flex-col">
-        <UploadComponent setFile={setSelectedFile} setValid={setIsValidFile} reset={resetUpload} />  
+        <UploadComponent setFile={setSelectedUpload} setValid={setIsValidFile} reset={resetUpload} />  
       </div>
       <button
-        onClick={handleConfirmFile}
+        onClick={handleConfirmUpload}
         className="py-2 mt-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
       >
         Bestätigen
