@@ -4,12 +4,15 @@ import * as CivicSage from 'civic_sage';
 
 export default function Upload() {
   const [inputValue, setInputValue] = useState('');
-  const [selectedUpload, setSelectedUpload] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isValidFile, setIsValidFile] = useState(false);
   const [resetUpload, setResetUpload] = useState(false);
+  const [isWebsiteButtonDisabled, setIsWebsiteButtonDisabled] = useState(false);
+  const [isUploadButtonDisabled, setIsUploadButtonDisabled] = useState(false);
 
   const handleConfirmWebsite = () => {
+    setIsWebsiteButtonDisabled(true); // Disable the button
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
     let indexWebsiteRequest = new CivicSage.IndexWebsiteRequest(inputValue); // IndexWebsiteRequest | 
@@ -22,9 +25,11 @@ export default function Upload() {
         alert(`${inputValue} added to the database.`);
         setInputValue(''); // Clear the input field after successful submission
       }
+      setIsWebsiteButtonDisabled(false); // Re-enable the button
     });
   };
 
+  {/*
   const handleConfirmUpload = () => {
     let filesToUpload = []; 
     
@@ -56,11 +61,31 @@ export default function Upload() {
           alert('Error adding website to the database.');
         } else {
           console.log('API called successfully.');
-          alert(`${files.map(file => file.name).join(', ')} added to the database.`);
+          alert(`SUCCESS! ${files.map(file => file.name).join(', ')} added to the database.`);
           setSelectedFiles([]); // Clear the selected files after successful submission
           setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
         }
       });
+  };
+  */}
+
+  const handleConfirmFile = () => {
+    setIsUploadButtonDisabled(true); // Disable the upload button
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let files = [selectedFile]; // File |
+    apiInstance.indexFiles(files, {}, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Error adding file to the database.');
+      } else {
+        console.log('API called successfully.');
+        alert(`SUCCESS! ${selectedFile.name} added to the database.`);
+        setSelectedFile(null); // Clear the selected files after successful submission
+        setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
+      }
+      setIsUploadButtonDisabled(false); // Re-enable the upload button
+    });
   };
 
   return (
@@ -80,7 +105,8 @@ export default function Upload() {
       />
       <button
         onClick={handleConfirmWebsite}
-        className="py-2 my-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        disabled={isWebsiteButtonDisabled}
+        className={`py-2 my-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
       >
         Bestätigen
       </button>
@@ -96,11 +122,12 @@ export default function Upload() {
     {/* Drag-and-Drop Upload */}
     <div className="flex flex-col mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
       <div className="flex-1 flex flex-col">
-        <UploadComponent setFile={setSelectedUpload} setValid={setIsValidFile} reset={resetUpload} />  
+        <UploadComponent setFile={setSelectedFile} setValid={setIsValidFile} reset={resetUpload} />  
       </div>
       <button
-        onClick={handleConfirmUpload}
-        className="py-2 mt-4 rounded-md bg-gray-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        onClick={handleConfirmFile}
+        disabled={isUploadButtonDisabled}
+        className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isUploadButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
       >
         Bestätigen
       </button>
