@@ -4,9 +4,9 @@ import * as CivicSage from 'civic_sage';
 
 export default function Upload() {
   const [inputValue, setInputValue] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isValidFile, setIsValidFile] = useState(false);
-  const [fileUID, setFileUID] = useState('');
+  const [fileUIDs, setFileUIDs] = useState([]);
   const [resetUpload, setResetUpload] = useState(false);
   const [isWebsiteButtonDisabled, setIsWebsiteButtonDisabled] = useState(false);
   const [isUploadButtonDisabled, setIsUploadButtonDisabled] = useState(false);
@@ -30,90 +30,76 @@ export default function Upload() {
       }
       setIsWebsiteButtonDisabled(false); // Re-enable the button
     });
-  };
+  }; 
 
-  {/*
-  const handleConfirmUpload = () => {
-    let filesToUpload = []; 
-    
-    if (selectedUpload && selectedUpload.isFile()) {
-      setSelectedFiles([selectedUpload]);
-      handleConfirmFiles();
-    } else if (selectedUpload && selectedUpload.isDirectory()) {
-      for (const file of selectedUpload.files) {
-        if (file.isFile()) {
-          setSelectedFiles(prevFiles => [...prevFiles, file]);
-        }
-      }
-      handleConfirmFiles();
-    } else {
-      alert('Please select a valid file or directory.');
-    }
-    return;
-  };  
-
-
-
-  const handleConfirmFiles = () => {
-    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
-    let apiInstance = new CivicSage.DefaultApi(client);
-    let files = selectedFiles; // File | 
-      apiInstance.indexFiles(files, (error, data, response) => {
-        if (error) {
-          console.error(error);
-          alert('Error adding website to the database.');
-        } else {
-          console.log('API called successfully.');
-          alert(`SUCCESS! ${files.map(file => file.name).join(', ')} added to the database.`);
-          setSelectedFiles([]); // Clear the selected files after successful submission
-          setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
-        }
-      });
-  };
-  */}
 
   /**
    *Uploads a single File and gets the UID from the server. (This later leads to indexing of the file) 
    */
-  const handleUploadFile = () => {
+  const handleUploadFiles = () => {
+    if (selectedFiles.length === 0) {
+      alert('Please select at least one file to upload.');
+      return;
+    }
+
     setIsUploadButtonDisabled(true); // Disable the upload button
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
-    let file = selectedFile; // File |
-    apiInstance.uploadFile(file, (error, data, response) => {
-      if (error) {
-        console.error(error);
-        alert('Error adding file to the database.');
-      } else {
-        console.log('API called successfully. UID: }' + data);
-        setFileUID(data);        
-      }
+
+    const uids = new Array(selectedFiles.length);
+
+    selectedFiles.forEach((file, index) => {
+      apiInstance.uploadFile(file, (error, data, response) => {
+        if (error) {
+          console.error(error);
+          alert('Error adding file to the database.');
+
+          setSelectedFiles([]); // Clear the selected files after successful submission
+          setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
+          setIsUploadButtonDisabled(false); // Re-enable the upload button
+          return;
+        } else {
+          console.log(`File ${file.name} uploaded successfully. UID: ${data.id}`);
+          uids[index] = data.id; // Store the UID at the correct index
+
+          // Check if all UIDs are filled
+          if (uids.filter(uid => uid !== undefined).length === selectedFiles.length) {
+            console.log("All files uploaded. Proceeding to indexing...");
+            setFileUIDs(uids);
+          }      
+        }
+      });
     });
   };
 
   useEffect(() => {
-    if (fileUID) {
-      indexFile();
+    if (fileUIDs) {
+      indexFiles();
     }
-  }, [fileUID]);
+  }, [fileUIDs]);
 
   /**
    * When the UID is set, tells the server to index the file
    */
-  const indexFile = () => {
+  const indexFiles = () => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
-    let indexFilesRequestInner = [new indexFilesRequestInner(fileUID, selectedFile.name)];
-    apiInstance.indexFiles(indexFilesRequestInner,  (error, data, response) => {
+    let indexFilesRequest = [];
+    for (let i = 0; i < fileUIDs.length; i++) {
+      if (fileUIDs[i] !== undefined) {
+        indexFilesRequest.push(new CivicSage.IndexFilesRequestInner(fileUIDs[i], selectedFiles[i].name));
+      }
+    }
+    apiInstance.indexFiles(indexFilesRequest,  (error, data, response) => {
       if (error) {
         console.error(error);
         alert('Error indexing files.');
       } else {
         console.log('Files indexed successfully.');
         alert('Files indexed successfully.');
-        setSelectedFile(null); // Clear the selected files after successful submission
-        setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
       }
+    setSelectedFiles([]); // Clear the selected files after successful submission
+    setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
     setIsUploadButtonDisabled(false); // Re-enable the upload button
     });
 
@@ -154,10 +140,10 @@ export default function Upload() {
     {/* Drag-and-Drop Upload */}
     <div className="flex flex-col mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
       <div className="flex-1 flex flex-col">
-        <UploadComponent setFile={setSelectedFile} setValid={setIsValidFile} reset={resetUpload} />  
+        <UploadComponent setFiles={setSelectedFiles} setValid={setIsValidFile} reset={resetUpload} />  
       </div>
       <button
-        onClick={handleUploadFile}
+        onClick={handleUploadFiles}
         disabled={isUploadButtonDisabled}
         className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isUploadButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
       >
