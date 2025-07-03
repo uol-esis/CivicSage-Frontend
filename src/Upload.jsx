@@ -73,7 +73,7 @@ export default function Upload() {
   };
 
   useEffect(() => {
-    if (fileUIDs) {
+    if (fileUIDs.length > 0) {
       indexFiles();
     }
   }, [fileUIDs]);
@@ -109,7 +109,7 @@ export default function Upload() {
   return (
   <div className="h-screen">
     {/* Input Field */}
-    <div className="flex flex-col mt-[3vh] mx-4 p-4 h-[30vh] bg-white shadow rounded-[10px]">
+    <div className="flex flex-col justify-between mt-[3vh] mx-4 p-4 h-[30vh] bg-white shadow rounded-[10px]">
       <h2 className="text-xl font-bold mb-4">
         Geben Sie einen Link ein, um den Inhalt der Webseite zur Datenbank hinzuzufügen:
       </h2>
@@ -124,7 +124,7 @@ export default function Upload() {
       <button
         onClick={handleConfirmWebsite}
         disabled={isWebsiteButtonDisabled}
-        className={`py-2 my-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
+        className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
       >
         Bestätigen
       </button>
