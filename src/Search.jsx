@@ -56,6 +56,21 @@ export default function Search() {
     }));
   };
 
+  const handleCheckAll = () => {
+    const allChecked = {}
+    results.forEach((_, idx) => {
+      allChecked[idx] = true; // Check all results
+    });
+    setCheckedResults(allChecked);
+  };
+
+  const handleUncheckAll = () => {
+    const allUnchecked = {}
+    results.forEach((_, idx) => {
+      allUnchecked[idx] = false; // Uncheck all results
+    });
+    setCheckedResults(allUnchecked);
+  };
 
   {/* Takes all checked boxes and tells the LLM to generate a summary based off of it*/}
   const handleGenerate = () => {
@@ -129,6 +144,23 @@ export default function Search() {
           {/* Results Section */}
           <Panel defaultSize={70} minSize={30} className="flex flex-col h-full">
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
+            
+            <div className="pb-2 flex flex-row items-center justify-end">
+              <button
+                onClick={handleCheckAll}
+                className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                disabled={isGenerating || results.length === 0}
+              >
+                Alle auswählen
+              </button>
+              <button
+                onClick={handleUncheckAll}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+                disabled={isGenerating || results.length === 0}
+              >
+                Alle abwählen
+              </button>
+            </div>
 
             {results.map((result, index) => {
               return(
