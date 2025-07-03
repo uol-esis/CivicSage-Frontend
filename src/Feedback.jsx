@@ -3,22 +3,14 @@ import { ChevronDownIcon } from '@heroicons/react/16/solid'
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircleIcon } from '@heroicons/react/20/solid'
+import * as CivicSage from 'civic_sage';
 
 export default function Feedback(){
 
     const [category, setCategory] = useState("search");
-    //const [Th1, setTh1] = useState(null);
     const navigate = useNavigate();
     const [isFeedbackSend, setFeedbackSend] = useState(false);
     const [comment, setComment] = useState('');
-
-    /*useEffect(() => {
-        import('th1').then(module => {
-          setTh1(module);
-        }).catch(error => {
-          console.error("Error loading th1 module:", error);
-        });
-      }, []);*/
 
     function handleSubmit(e) {
         // Prevent the browser from reloading the page
@@ -33,19 +25,14 @@ export default function Feedback(){
         formJson.category = category;
         const jsonString = JSON.stringify(formJson);
         console.log("Feedback JSON:", jsonString);
-        //sendToServer(jsonString);
+        sendToServer(jsonString);
     }
 
     function sendToServer(feedbackString){
-        if (!Th1) {
-            console.error("Th1 module is not loaded yet.");
-            return;
-        }
-        const client = new Th1.ApiClient(import.meta.env.VITE_API_ENDPOINT);
-        const api = new Th1.DefaultApi(client);
-        let feedback = new Th1.Feedback();
-        feedback.content = feedbackString;
-        api.submitFeedback(feedback, (error, data, response) => {
+        const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+        let apiInstance = new CivicSage.DefaultApi(client);
+        let feedback = new CivicSage.Feedback(feedbackString);
+        apiInstance.submitFeedback(feedback, (error, data, response) => {
             if (error) {
                 setFeedbackSend(false);
                 console.error(error);
@@ -70,7 +57,7 @@ export default function Feedback(){
                         <div className="flex">
                             <CheckCircleIcon aria-hidden="true" className="size-5 text-green-400" />
                             <div className="ml-3">
-                                <h3 className="text-sm font-medium text-green-800">Feedback wurde gesendet:</h3>
+                                <h3 className="text-sm font-medium text-green-800">Feedback wurde gesendet!</h3>
                             </div>
                         </div>
                     </div>
