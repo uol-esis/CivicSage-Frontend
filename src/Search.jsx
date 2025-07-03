@@ -141,10 +141,11 @@ export default function Search() {
                   />
                   
                   <div className="text-xs text-gray-500 mb-1">
-                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="underline">
+                    <span className="ml-2 text-lg font-bold">{result.title}</span>
+                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="ml-2 underline">
                       {result.url}
                     </a>
-                    <span className="ml-2">{result.fileName}</span>
+                    <span className="ml-2 text-lg font-bold">{result.fileName}</span>
                     <span className="ml-2 text-gray-400">Score: {result.score?.toFixed(2)}</span>
                   </div>
                   <div className="text-sm">{result.text}</div>
