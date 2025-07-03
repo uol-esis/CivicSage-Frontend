@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import * as CivicSage from 'civic_sage';
+import { data } from 'react-router-dom';
 
 export default function Search() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [checkedResults, setCheckedResults] = useState({});
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState('Generiere eine kurze Zusammenfassung basierend auf den ausgewählten Ergebnissen!');
+  const [textSummary, setTextSummary] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
+  {/* Searches the DB for results and display them in boxes */}
   const handleSearch = () => {
     if (!query || query.trim() === '') {
       return
     }
+    setIsSearching(true);
     console.log('Searching for:', query);
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -20,9 +26,8 @@ export default function Search() {
       'pageNumber': 0, // Number | Page number
       'pageSize': 10 // Number | Page size
     };
-    console.log('Api Instance:', apiInstance);
     apiInstance.searchFiles(searchQuery, opts, (error, data, response) => {
-      console.log('Response:', response);
+      setIsSearching(false);
       if (error) {
         console.error(error);
         alert('Error searching files. Please try again.');
@@ -51,13 +56,36 @@ export default function Search() {
     }));
   };
 
+
+  {/* Takes all checked boxes and tells the LLM to generate a summary based off of it*/}
   const handleGenerate = () => {
-    const selectedResults = results.filter((_, idx) => checkedResults[idx]);
-    if (selectedResults.length === 0) {
+    const resultIds = []
+    for (let i = 0; i < results.length; i++) {
+      if (checkedResults[i]) {
+        resultIds.push(results[i].documentId);
+      }
+    }
+    console.log('Selected result IDs:', resultIds);
+    if (resultIds.length === 0) {
       alert('Please select at least one result to generate text.');
       return;
     }
-    return;
+    setIsGenerating(true);
+    console.log('Generating text with prompt:', prompt, 'for results:', resultIds);
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let systemPrompt = "Du bist ein KI-Textgenerator, der auf Basis von Dokumenten kurze Zusammenfassungen erstellt. Deine Aufgabe ist es, eine prägnante und informative Zusammenfassung zu generieren. Anschließend sind Textpassagen gegeben, die im Prompt als 'ausgewählte Ergebnisse' bezeichnet werden.";
+    let summarizeEmbeddingsRequest = new CivicSage.SummarizeEmbeddingsRequest(resultIds, prompt, systemPrompt);
+    apiInstance.summarizeEmbeddings(summarizeEmbeddingsRequest, (error, data, response) => {
+      setIsGenerating(false);
+      if (error) {
+        console.error(error);
+        setTextSummary("Ein Fehler ist aufgetreten: " + error)
+      } else {
+        console.log('API called successfully. Returned data: ' + data.summary);
+        setTextSummary(data.summary)
+      }
+    });
   }
 
 
@@ -79,8 +107,13 @@ export default function Search() {
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded-r"
+            disabled={isSearching}
           >
-            Search
+            {isSearching ? (
+              <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+            ) : (
+              'Search'
+            )}
           </button>
         </form>
       </div>
@@ -129,6 +162,7 @@ export default function Search() {
               <textarea
                 className="w-full h-full p-2 mb-1 resize-none border border-gray-300 rounded"
                 placeholder="Generated text will be displayed here..."
+                value={textSummary}
                 readOnly>
               </textarea>
               <form
@@ -145,8 +179,13 @@ export default function Search() {
                 <button
                   type="submit"
                   className="bg-blue-500 text-white px-4 py-2 h-[6.5rem] rounded-r"
+                  disabled={isGenerating}
                 >
-                  Los
+                  {isGenerating ? (
+                    <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+                  ) : (
+                    'Los'
+                  )}
                 </button>
               </form>
             </div>
