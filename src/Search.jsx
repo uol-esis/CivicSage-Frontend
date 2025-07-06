@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import * as CivicSage from 'civic_sage';
 import { data } from 'react-router-dom';
@@ -6,12 +6,16 @@ import { data } from 'react-router-dom';
 export default function Search() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [checkedResults, setCheckedResults] = useState([]);
+  const [resultsIsChecked, setResultsIsChecked] = useState([]);
+  const [resultsIsLocked, setResultsIsLocked] = useState([]);
   const [lockedResults, setLockedResults] = useState([]);
   const [prompt, setPrompt] = useState('Generiere eine kurze Zusammenfassung basierend auf den ausgewählten Ergebnissen!');
   const [textSummary, setTextSummary] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  
+
 
   {/* Searches the DB for results and display them in boxes */}
   const handleSearch = () => {
@@ -40,29 +44,54 @@ export default function Search() {
         } catch (e) {
           console.error('Failed to parse response:', e);
         }
+        parsedResults = lockedResults.concat(parsedResults);
         setResults(parsedResults);
-        const initialCheckedResults = {};
-        parsedResults.forEach((result, idx) => {
-          initialCheckedResults[idx] = true; // Initialize all results as checked
+        const initialResultsIsChecked = Array(parsedResults.length).fill(true); // Initialize all results as checked
+        setResultsIsChecked(initialResultsIsChecked);
+        
+        const initialResultsIsLocked = Array(parsedResults.length).fill(false); // Initialize all results as not locked
+        lockedResults.forEach((_, idx) => {
+          initialResultsIsLocked[idx] = true; // Initialize all locked results as locked
         });
-        setCheckedResults(initialCheckedResults);
+        setResultsIsLocked(initialResultsIsLocked);
       }
     });
   };
 
+  {/* Save all locked results, so they will still be displayed in the next search */}
+  useEffect(() => {
+    // Check if there are any locked results and keep them
+    if (resultsIsLocked.length === 0) {
+      return;
+    }
+    if (resultsIsLocked.some(isLocked => isLocked)) {
+      const lockedResults = results.filter((_, idx) => resultsIsLocked[idx]);
+      setLockedResults(lockedResults);
+    }    
+  } , [resultsIsLocked]);
+
   const handleCheckboxChange = (idx) => {
-    setCheckedResults(prev => ({
-      ...prev,
-      [idx]: !prev[idx]
-    }));
+    setResultsIsChecked(prev => {
+      const updated = [...prev];
+      updated[idx] = !updated[idx];
+      return updated;
+    });
   };
+
+  const handleLockToggle = (index) => {
+    setResultsIsLocked(prev => {
+      const updated = [...prev];
+      updated[index] = !updated[index]
+      return updated;
+    });
+  }
 
   const handleCheckAll = () => {
     const allChecked = {}
     results.forEach((_, idx) => {
       allChecked[idx] = true; // Check all results
     });
-    setCheckedResults(allChecked);
+    setResultsIsChecked(allChecked);
   };
 
   const handleUncheckAll = () => {
@@ -70,14 +99,14 @@ export default function Search() {
     results.forEach((_, idx) => {
       allUnchecked[idx] = false; // Uncheck all results
     });
-    setCheckedResults(allUnchecked);
+    setResultsIsChecked(allUnchecked);
   };
 
   {/* Takes all checked boxes and tells the LLM to generate a summary based off of it*/}
   const handleGenerate = () => {
     const resultIds = []
     for (let i = 0; i < results.length; i++) {
-      if (checkedResults[i]) {
+      if (resultsIsChecked[i]) {
         resultIds.push(results[i].documentId);
       }
     }
@@ -165,15 +194,10 @@ export default function Search() {
               return(
                 <div key={index} className="border border-gray-300 rounded p-2 relative">
                   <div
-                    onClick={() => {
-                      setLockedResults(prev => ({
-                        ...prev,
-                        [index]: !prev[index]
-                      }));
-                    }}
-                    className={`absolute top-2 right-9 cursor-pointer ${lockedResults[index] ? 'text-red-500' : 'text-green-500'}`}
+                    onClick={() => handleLockToggle(index)}
+                    className={`absolute top-2 right-9 cursor-pointer ${resultsIsLocked[index] ? 'text-red-500' : 'text-green-500'}`}
                   >
-                    {lockedResults[index] ? (
+                    {resultsIsLocked[index] ? (
                       <svg fill="#000000" width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                       <title>locked</title>
                       <path d="M4 31v-16h3v-5c0-4.418 3.581-8 8-8h1c4.418 0 8 3.582 8 8v5h3v16h-23zM14.744 22.787l-0.744 5.213h3l-0.745-5.213c0.729-0.298 1.245-1.013 1.245-1.85 0-1.104-0.896-2-2-2-1.105 0-2 0.896-2 2 0 0.837 0.515 1.552 1.244 1.85zM21 10.5c0-3.038-2.463-5.5-5.5-5.5-3.038 0-5.5 2.462-5.5 5.5v4.5h11v-4.5z"></path>
@@ -191,7 +215,7 @@ export default function Search() {
                   </div>
                   <input
                     type="checkbox"
-                    checked={checkedResults[index] ?? true}
+                    checked={resultsIsChecked[index] ?? true}
                     onChange={() => handleCheckboxChange(index)}
                     className="absolute top-2 right-2 border bg-white w-5 h-5 rounded cursor-pointer"  
                   />
