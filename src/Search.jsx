@@ -13,12 +13,13 @@ export default function Search() {
   const [textSummary, setTextSummary] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-
+  const [resultCount, setResultCount] = useState(10); // Default result count
+  const [resultPage, setResultPage] = useState(0); // Default result page
   
 
 
   {/* Searches the DB for results and display them in boxes */}
-  const handleSearch = () => {
+  const handleSearch = (page = 0) => {
     if (!query || query.trim() === '') {
       return
     }
@@ -28,8 +29,8 @@ export default function Search() {
     let apiInstance = new CivicSage.DefaultApi(client);
     let searchQuery = new CivicSage.SearchQuery(query); // SearchQuery | 
     let opts = {
-      'pageNumber': 0, // Number | Page number
-      'pageSize': 10 // Number | Page size
+      'pageNumber': page, // Number | Page number
+      'pageSize': resultCount // Number | Page size
     };
     apiInstance.searchFiles(searchQuery, opts, (error, data, response) => {
       setIsSearching(false);
@@ -44,15 +45,27 @@ export default function Search() {
         } catch (e) {
           console.error('Failed to parse response:', e);
         }
-        parsedResults = lockedResults.concat(parsedResults);
-        setResults(parsedResults);
-        const initialResultsIsChecked = Array(parsedResults.length).fill(true); // Initialize all results as checked
+        let allResults = [];
+        if (page === 0) {
+          allResults = lockedResults.concat(parsedResults);
+        } else {
+          allResults = results.concat(parsedResults);
+        }
+        setResults(allResults);
+        let initialResultsIsChecked = Array(parsedResults.length).fill(true); // Initialize all results as checked
+        if (page > 0) {
+          initialResultsIsChecked = resultsIsChecked.concat(initialResultsIsChecked);
+        }
         setResultsIsChecked(initialResultsIsChecked);
         
-        const initialResultsIsLocked = Array(parsedResults.length).fill(false); // Initialize all results as not locked
-        lockedResults.forEach((_, idx) => {
-          initialResultsIsLocked[idx] = true; // Initialize all locked results as locked
-        });
+        let initialResultsIsLocked = Array(parsedResults.length).fill(false); // Initialize all results as not locked
+        if (page === 0) {
+          lockedResults.forEach((_, idx) => {
+            initialResultsIsLocked[idx] = true; // Initialize all locked results as locked
+          });
+        } else {
+          initialResultsIsLocked = resultsIsLocked.concat(initialResultsIsLocked);
+        }
         setResultsIsLocked(initialResultsIsLocked);
       }
     });
@@ -69,6 +82,12 @@ export default function Search() {
       setLockedResults(lockedResults);
     }    
   } , [resultsIsLocked]);
+
+  useEffect(() => {
+    if (resultPage >= 1) {
+      handleSearch(resultPage);
+    }
+  }, [resultPage]); // Re-run search when resultPage or resultCount
 
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
@@ -150,7 +169,7 @@ export default function Search() {
       <div className="bg-white z-10 sticky top-0 p-4 shadow">
         <form
           className="flex flex-row items-center"
-          onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
+          onSubmit={(e) => { e.preventDefault(); handleSearch(0); }}
         >
           <input
             type="text"
@@ -182,37 +201,54 @@ export default function Search() {
           {/* Results Section */}
           <Panel defaultSize={70} minSize={30} className="flex flex-col h-full">
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
-            
-            <div className="pb-2 flex flex-row items-center justify-end">
-              <button
-                onClick={handleLockAllChecked}
-                className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
-                disabled={isGenerating || results.length === 0}
-              >
-                Sperre Ausgewählte
-              </button>
-              <button
-                onClick={handleUnlockAll}
-                className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
-                disabled={isGenerating || results.length === 0}
-              >
-                Alle entsperren
-              </button>
+            <div className="flex flex-row justify-between">
+              <div className="pb-2 flex flex-row items-center justify-start">
+                <label className="flex items-center">
+                  <input
+                    type="number"
+                    value={resultCount}
+                    
+                    onChange={(e) => {
+                      if (e.target.value > 0) {
+                        setResultCount(e.target.value)
+                      }
+                    }}
+                    className="border border-gray-300 rounded px-4 py-2 w-20"
+                  ></input>
+                  <span className="ml-2">Ergebnisse laden</span>
+                </label>
+              </div>
+              <div className="pb-2 flex flex-row items-center justify-end">
+                <button
+                  onClick={handleLockAllChecked}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Sperre Ausgewählte
+                </button>
+                <button
+                  onClick={handleUnlockAll}
+                  className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Alle entsperren
+                </button>
 
-              <button
-                onClick={handleCheckAll}
-                className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-                disabled={isGenerating || results.length === 0}
-              >
-                Alle auswählen
-              </button>
-              <button
-                onClick={handleUncheckAll}
-                className="bg-red-500 text-white px-4 py-2 rounded"
-                disabled={isGenerating || results.length === 0}
-              >
-                Alle abwählen
-              </button>
+                <button
+                  onClick={handleCheckAll}
+                  className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Alle auswählen
+                </button>
+                <button
+                  onClick={handleUncheckAll}
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Alle abwählen
+                </button>
+              </div>
             </div>
 
             {results.map((result, index) => {
@@ -257,6 +293,12 @@ export default function Search() {
                 </div>
               )
             })}
+            <button
+              onClick={() => setResultPage(resultPage + 1)}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+              hidden={results.length === 0}
+              disabled={isGenerating || isSearching}
+            >+</button>
             </div>
           </Panel>
           <PanelResizeHandle className="w-4 bg-gray-300"/>
