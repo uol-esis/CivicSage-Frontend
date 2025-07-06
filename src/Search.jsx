@@ -13,6 +13,7 @@ export default function Search() {
   const [textSummary, setTextSummary] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [resultCount, setResultCount] = useState(10); // Default result count
 
   
 
@@ -29,7 +30,7 @@ export default function Search() {
     let searchQuery = new CivicSage.SearchQuery(query); // SearchQuery | 
     let opts = {
       'pageNumber': 0, // Number | Page number
-      'pageSize': 10 // Number | Page size
+      'pageSize': resultCount // Number | Page size
     };
     apiInstance.searchFiles(searchQuery, opts, (error, data, response) => {
       setIsSearching(false);
@@ -182,37 +183,54 @@ export default function Search() {
           {/* Results Section */}
           <Panel defaultSize={70} minSize={30} className="flex flex-col h-full">
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
-            
-            <div className="pb-2 flex flex-row items-center justify-end">
-              <button
-                onClick={handleLockAllChecked}
-                className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
-                disabled={isGenerating || results.length === 0}
-              >
-                Sperre Ausgewählte
-              </button>
-              <button
-                onClick={handleUnlockAll}
-                className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
-                disabled={isGenerating || results.length === 0}
-              >
-                Alle entsperren
-              </button>
+            <div className="flex flex-row justify-between">
+              <div className="pb-2 flex flex-row items-center justify-start">
+                <label className="flex items-center">
+                  <input
+                    type="number"
+                    value={resultCount}
+                    
+                    onChange={(e) => {
+                      if (e.target.value > 0) {
+                        setResultCount(e.target.value)
+                      }
+                    }}
+                    className="border border-gray-300 rounded px-4 py-2 w-20"
+                  ></input>
+                  <span className="ml-2">Ergebnisse laden</span>
+                </label>
+              </div>
+              <div className="pb-2 flex flex-row items-center justify-end">
+                <button
+                  onClick={handleLockAllChecked}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Sperre Ausgewählte
+                </button>
+                <button
+                  onClick={handleUnlockAll}
+                  className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Alle entsperren
+                </button>
 
-              <button
-                onClick={handleCheckAll}
-                className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-                disabled={isGenerating || results.length === 0}
-              >
-                Alle auswählen
-              </button>
-              <button
-                onClick={handleUncheckAll}
-                className="bg-red-500 text-white px-4 py-2 rounded"
-                disabled={isGenerating || results.length === 0}
-              >
-                Alle abwählen
-              </button>
+                <button
+                  onClick={handleCheckAll}
+                  className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Alle auswählen
+                </button>
+                <button
+                  onClick={handleUncheckAll}
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Alle abwählen
+                </button>
+              </div>
             </div>
 
             {results.map((result, index) => {
