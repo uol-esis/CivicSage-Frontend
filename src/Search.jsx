@@ -14,12 +14,12 @@ export default function Search() {
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultCount, setResultCount] = useState(10); // Default result count
-
+  const [resultPage, setResultPage] = useState(0); // Default result page
   
 
 
   {/* Searches the DB for results and display them in boxes */}
-  const handleSearch = () => {
+  const handleSearch = (page = 0) => {
     if (!query || query.trim() === '') {
       return
     }
@@ -29,7 +29,7 @@ export default function Search() {
     let apiInstance = new CivicSage.DefaultApi(client);
     let searchQuery = new CivicSage.SearchQuery(query); // SearchQuery | 
     let opts = {
-      'pageNumber': 0, // Number | Page number
+      'pageNumber': page, // Number | Page number
       'pageSize': resultCount // Number | Page size
     };
     apiInstance.searchFiles(searchQuery, opts, (error, data, response) => {
@@ -45,15 +45,27 @@ export default function Search() {
         } catch (e) {
           console.error('Failed to parse response:', e);
         }
-        parsedResults = lockedResults.concat(parsedResults);
-        setResults(parsedResults);
-        const initialResultsIsChecked = Array(parsedResults.length).fill(true); // Initialize all results as checked
+        let allResults = [];
+        if (page === 0) {
+          allResults = lockedResults.concat(parsedResults);
+        } else {
+          allResults = results.concat(parsedResults);
+        }
+        setResults(allResults);
+        let initialResultsIsChecked = Array(parsedResults.length).fill(true); // Initialize all results as checked
+        if (page > 0) {
+          initialResultsIsChecked = resultsIsChecked.concat(initialResultsIsChecked);
+        }
         setResultsIsChecked(initialResultsIsChecked);
         
-        const initialResultsIsLocked = Array(parsedResults.length).fill(false); // Initialize all results as not locked
-        lockedResults.forEach((_, idx) => {
-          initialResultsIsLocked[idx] = true; // Initialize all locked results as locked
-        });
+        let initialResultsIsLocked = Array(parsedResults.length).fill(false); // Initialize all results as not locked
+        if (page === 0) {
+          lockedResults.forEach((_, idx) => {
+            initialResultsIsLocked[idx] = true; // Initialize all locked results as locked
+          });
+        } else {
+          initialResultsIsLocked = resultsIsLocked.concat(initialResultsIsLocked);
+        }
         setResultsIsLocked(initialResultsIsLocked);
       }
     });
@@ -70,6 +82,12 @@ export default function Search() {
       setLockedResults(lockedResults);
     }    
   } , [resultsIsLocked]);
+
+  useEffect(() => {
+    if (resultPage >= 1) {
+      handleSearch(resultPage);
+    }
+  }, [resultPage]); // Re-run search when resultPage or resultCount
 
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
@@ -151,7 +169,7 @@ export default function Search() {
       <div className="bg-white z-10 sticky top-0 p-4 shadow">
         <form
           className="flex flex-row items-center"
-          onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
+          onSubmit={(e) => { e.preventDefault(); handleSearch(0); }}
         >
           <input
             type="text"
@@ -275,6 +293,12 @@ export default function Search() {
                 </div>
               )
             })}
+            <button
+              onClick={() => setResultPage(resultPage + 1)}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+              hidden={results.length === 0}
+              disabled={isGenerating || isSearching}
+            >+</button>
             </div>
           </Panel>
           <PanelResizeHandle className="w-4 bg-gray-300"/>
