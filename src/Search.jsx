@@ -87,20 +87,30 @@ export default function Search() {
   }
 
   const handleCheckAll = () => {
-    const allChecked = {}
-    results.forEach((_, idx) => {
-      allChecked[idx] = true; // Check all results
-    });
+    const allChecked = Array(resultsIsChecked.length).fill(true); // Check all results
     setResultsIsChecked(allChecked);
   };
 
   const handleUncheckAll = () => {
-    const allUnchecked = {}
-    results.forEach((_, idx) => {
-      allUnchecked[idx] = false; // Uncheck all results
-    });
+    const allUnchecked = Array(resultsIsChecked.length).fill(false); // Uncheck all results
     setResultsIsChecked(allUnchecked);
   };
+
+  const handleLockAllChecked = () => {
+    const updatedResultsIsLocked = [...resultsIsLocked];
+    resultsIsChecked.forEach((isChecked, idx) => {
+      if (isChecked) {
+        updatedResultsIsLocked[idx] = true; // Lock all checked results
+      }
+    });
+    setResultsIsLocked(updatedResultsIsLocked);
+  };
+
+  const handleUnlockAll = () => {
+    const updatedResultsIsLocked = [resultsIsLocked.length].fill(false); // Unlock all results
+    setResultsIsLocked(updatedResultsIsLocked);
+  };
+
 
   {/* Takes all checked boxes and tells the LLM to generate a summary based off of it*/}
   const handleGenerate = () => {
@@ -174,6 +184,21 @@ export default function Search() {
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
             
             <div className="pb-2 flex flex-row items-center justify-end">
+              <button
+                onClick={handleLockAllChecked}
+                className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
+                disabled={isGenerating || results.length === 0}
+              >
+                Sperre Ausgewählte
+              </button>
+              <button
+                onClick={handleUnlockAll}
+                className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+                disabled={isGenerating || results.length === 0}
+              >
+                Alle entsperren
+              </button>
+
               <button
                 onClick={handleCheckAll}
                 className="bg-green-500 text-white px-4 py-2 rounded mr-2"
