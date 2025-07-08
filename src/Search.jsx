@@ -19,7 +19,7 @@ export default function Search() {
   const [resultPage, setResultPage] = useState(0); // Default result page
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
-  
+  const [viewHistory, setViewHistory] = useState([]);
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -30,10 +30,10 @@ export default function Search() {
     setIsSearching(true);
     console.log('Searching for:', query);
     // Add query to localStorage "search history"
-    const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || []; // Retrieve existing history or initialize as an empty array
-    if (!searchHistory.includes(query)) { // Avoid duplicates
-      searchHistory.push(query);
-      localStorage.setItem('searchHistory', JSON.stringify(searchHistory)); // Save updated history
+    const history = JSON.parse(localStorage.getItem('searchHistory')) || []; // Retrieve existing history or initialize as an empty array
+    if (!history.includes(query)) { // Avoid duplicates
+      history.push(query);
+      localStorage.setItem('searchHistory', JSON.stringify(history)); // Save updated history
     }
 
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -116,6 +116,35 @@ export default function Search() {
     setQuery(item);
     setPendingSearch(true);
   };
+
+  const handleShowViews = () => {
+    const savedViews = JSON.parse(localStorage.getItem('savedViews')) || [];
+    setViewHistory(savedViews);
+  };
+
+  const handleViewItemClick = (view) => {
+    setQuery(view.query);
+    setResults(view.results);
+    setResultsIsChecked(view.resultsIsChecked);
+    setResultsIsLocked(view.resultsIsLocked);
+    setPrompt(view.prompt);
+    setTextSummary(view.textSummary);
+  }
+
+  const handleSaveView = () => {
+    const view = {
+      query: query,
+      results: results,
+      resultsIsChecked: resultsIsChecked,
+      resultsIsLocked: resultsIsLocked,
+      prompt: prompt,
+      textSummary: textSummary
+    };
+    const viewList = JSON.parse(localStorage.getItem('savedViews')) || [];
+    viewList.push(view);
+    localStorage.setItem('savedViews', JSON.stringify(viewList));
+    alert('View saved successfully!');
+  }
 
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
@@ -234,6 +263,41 @@ export default function Search() {
               )}
             </MenuItems>
           </Menu>
+          {/* Lesezeichen */}
+          <Menu as="div" className="relative inline-block text-left">
+            {/* Dropdown Button */}
+            <MenuButton
+              className="bg-gray-500 text-white px-4 py-2 ml-2 rounded"
+              onClick={handleShowViews}
+            >
+              Lesezeichen
+            </MenuButton>
+
+            {/* Dropdown Content */}
+            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
+              <h3 className="text-lg font-bold mb-2">Lesezeichen:</h3>
+              {viewHistory.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {viewHistory.map((item, index) => (
+                    <MenuItem key={index}>
+                      {({ active }) => (
+                        <li
+                          className={`${
+                            active ? 'bg-gray-100' : ''
+                          } text-gray-700 cursor-pointer`}
+                          onClick={() => handleViewItemClick(item)}
+                        >
+                          {item.query}
+                        </li>
+                      )}
+                    </MenuItem>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">Noch keine Lesezeichen gesetzt.</p>
+              )}
+            </MenuItems>
+          </Menu>
           <input
             type="text"
             value={query}
@@ -283,6 +347,13 @@ export default function Search() {
                 </label>
               </div>
               <div className="pb-2 flex flex-row items-center justify-end">
+                <button
+                  onClick={handleSaveView}
+                  className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Speichere Auswahl
+                </button>
                 <button
                   onClick={handleLockAllChecked}
                   className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
