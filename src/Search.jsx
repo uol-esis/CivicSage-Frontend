@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import * as CivicSage from 'civic_sage';
 import { data } from 'react-router-dom';
+import { Menu, MenuItem, MenuItems, MenuButton } from '@headlessui/react';
+
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -15,6 +17,8 @@ export default function Search() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultCount, setResultCount] = useState(10); // Default result count
   const [resultPage, setResultPage] = useState(0); // Default result page
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [pendingSearch, setPendingSearch] = useState(false);
   
 
 
@@ -25,6 +29,13 @@ export default function Search() {
     }
     setIsSearching(true);
     console.log('Searching for:', query);
+    // Add query to localStorage "search history"
+    const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || []; // Retrieve existing history or initialize as an empty array
+    if (!searchHistory.includes(query)) { // Avoid duplicates
+      searchHistory.push(query);
+      localStorage.setItem('searchHistory', JSON.stringify(searchHistory)); // Save updated history
+    }
+
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
     let searchQuery = new CivicSage.SearchQuery(query); // SearchQuery | 
@@ -88,6 +99,23 @@ export default function Search() {
       handleSearch(resultPage);
     }
   }, [resultPage]); // Re-run search when resultPage or resultCount
+
+  useEffect(() => {
+    if (pendingSearch) {
+      handleSearch(0);
+      setPendingSearch(false);
+    }
+  }, [query]);
+
+  const handleShowHistory = () => {
+    const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+    setSearchHistory(history);
+  };
+
+  const handleHistoryItemClick = (item) => {
+    setQuery(item);
+    setPendingSearch(true);
+  };
 
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
@@ -171,12 +199,47 @@ export default function Search() {
           className="flex flex-row items-center"
           onSubmit={(e) => { e.preventDefault(); handleSearch(0); }}
         >
+          {/* Search History */}
+          <Menu as="div" className="relative inline-block text-left">
+            {/* Dropdown Button */}
+            <MenuButton
+              className="bg-gray-500 text-white px-4 py-2 rounded"
+              onClick={handleShowHistory}
+            >
+              Historie
+            </MenuButton>
+
+            {/* Dropdown Content */}
+            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
+              <h3 className="text-lg font-bold mb-2">Search History:</h3>
+              {searchHistory.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {searchHistory.map((item, index) => (
+                    <MenuItem key={index}>
+                      {({ active }) => (
+                        <li
+                          className={`${
+                            active ? 'bg-gray-100' : ''
+                          } text-gray-700 cursor-pointer`}
+                          onClick={() => handleHistoryItemClick(item)}
+                        >
+                          {item}
+                        </li>
+                      )}
+                    </MenuItem>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">No search history available.</p>
+              )}
+            </MenuItems>
+          </Menu>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
-            className="border border-gray-300 rounded px-4 py-2 w-full"
+            className="border border-gray-300 rounded px-4 py-2 ml-2 w-full"
           />
           <button
             type="submit"
@@ -190,6 +253,7 @@ export default function Search() {
             )}
           </button>
         </form>
+        
       </div>
 
       {/*bottom part */}
