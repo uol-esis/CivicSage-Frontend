@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import * as CivicSage from 'civic_sage';
 import { data } from 'react-router-dom';
+import { Menu, MenuItem, MenuItems, MenuButton } from '@headlessui/react';
+
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -15,7 +17,9 @@ export default function Search() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultCount, setResultCount] = useState(10); // Default result count
   const [resultPage, setResultPage] = useState(0); // Default result page
-  
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [pendingSearch, setPendingSearch] = useState(false);
+  const [viewHistory, setViewHistory] = useState([]);
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -25,6 +29,13 @@ export default function Search() {
     }
     setIsSearching(true);
     console.log('Searching for:', query);
+    // Add query to localStorage "search history"
+    const history = JSON.parse(localStorage.getItem('searchHistory')) || []; // Retrieve existing history or initialize as an empty array
+    if (!history.includes(query)) { // Avoid duplicates
+      history.push(query);
+      localStorage.setItem('searchHistory', JSON.stringify(history)); // Save updated history
+    }
+
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
     let searchQuery = new CivicSage.SearchQuery(query); // SearchQuery | 
@@ -88,6 +99,52 @@ export default function Search() {
       handleSearch(resultPage);
     }
   }, [resultPage]); // Re-run search when resultPage or resultCount
+
+  useEffect(() => {
+    if (pendingSearch) {
+      handleSearch(0);
+      setPendingSearch(false);
+    }
+  }, [query]);
+
+  const handleShowHistory = () => {
+    const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+    setSearchHistory(history);
+  };
+
+  const handleHistoryItemClick = (item) => {
+    setQuery(item);
+    setPendingSearch(true);
+  };
+
+  const handleShowViews = () => {
+    const savedViews = JSON.parse(localStorage.getItem('savedViews')) || [];
+    setViewHistory(savedViews);
+  };
+
+  const handleViewItemClick = (view) => {
+    setQuery(view.query);
+    setResults(view.results);
+    setResultsIsChecked(view.resultsIsChecked);
+    setResultsIsLocked(view.resultsIsLocked);
+    setPrompt(view.prompt);
+    setTextSummary(view.textSummary);
+  }
+
+  const handleSaveView = () => {
+    const view = {
+      query: query,
+      results: results,
+      resultsIsChecked: resultsIsChecked,
+      resultsIsLocked: resultsIsLocked,
+      prompt: prompt,
+      textSummary: textSummary
+    };
+    const viewList = JSON.parse(localStorage.getItem('savedViews')) || [];
+    viewList.push(view);
+    localStorage.setItem('savedViews', JSON.stringify(viewList));
+    alert('View saved successfully!');
+  }
 
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
@@ -171,12 +228,88 @@ export default function Search() {
           className="flex flex-row items-center"
           onSubmit={(e) => { e.preventDefault(); handleSearch(0); }}
         >
+          {/* Search History */}
+          <Menu as="div" className="relative inline-block text-left">
+            {/* Dropdown Button */}
+            <MenuButton
+              className="bg-gray-500 text-white px-2 py-2 rounded"
+              onClick={handleShowHistory}
+              title="Suchverlauf"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </MenuButton>
+
+            {/* Dropdown Content */}
+            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
+              <h3 className="text-lg font-bold mb-2">Suchverlauf:</h3>
+              {searchHistory.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {searchHistory.map((item, index) => (
+                    <MenuItem key={index}>
+                      {({ active }) => (
+                        <li
+                          className={`${
+                            active ? 'bg-gray-100' : ''
+                          } text-gray-700 cursor-pointer`}
+                          onClick={() => handleHistoryItemClick(item)}
+                        >
+                          {item}
+                        </li>
+                      )}
+                    </MenuItem>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">Noch kein Suchverlauf vorhanden.</p>
+              )}
+            </MenuItems>
+          </Menu>
+          {/* Lesezeichen */}
+          <Menu as="div" className="relative inline-block text-left">
+            {/* Dropdown Button */}
+            <MenuButton
+              className="bg-gray-500 text-white p-2 ml-2 rounded"
+              onClick={handleShowViews}
+              title="Lesezeichen"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z" />
+              </svg>
+            </MenuButton>
+
+            {/* Dropdown Content */}
+            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
+              <h3 className="text-lg font-bold mb-2">Lesezeichen:</h3>
+              {viewHistory.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {viewHistory.map((item, index) => (
+                    <MenuItem key={index}>
+                      {({ active }) => (
+                        <li
+                          className={`${
+                            active ? 'bg-gray-100' : ''
+                          } text-gray-700 cursor-pointer`}
+                          onClick={() => handleViewItemClick(item)}
+                        >
+                          {item.query}
+                        </li>
+                      )}
+                    </MenuItem>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">Noch keine Lesezeichen gesetzt.</p>
+              )}
+            </MenuItems>
+          </Menu>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
-            className="border border-gray-300 rounded px-4 py-2 w-full"
+            className="border border-gray-300 rounded px-4 py-2 ml-2 w-full"
           />
           <button
             type="submit"
@@ -190,6 +323,7 @@ export default function Search() {
             )}
           </button>
         </form>
+        
       </div>
 
       {/*bottom part */}
@@ -219,6 +353,13 @@ export default function Search() {
                 </label>
               </div>
               <div className="pb-2 flex flex-row items-center justify-end">
+                <button
+                  onClick={handleSaveView}
+                  className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+                  disabled={isGenerating || results.length === 0}
+                >
+                  Speichere Auswahl
+                </button>
                 <button
                   onClick={handleLockAllChecked}
                   className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
