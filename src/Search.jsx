@@ -232,15 +232,18 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white px-4 py-2 rounded"
+              className="bg-gray-500 text-white px-2 py-2 rounded"
               onClick={handleShowHistory}
+              title="Suchverlauf"
             >
-              Historie
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </MenuButton>
 
             {/* Dropdown Content */}
             <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
-              <h3 className="text-lg font-bold mb-2">Search History:</h3>
+              <h3 className="text-lg font-bold mb-2">Suchverlauf:</h3>
               {searchHistory.length > 0 ? (
                 <ul className="list-disc pl-5">
                   {searchHistory.map((item, index) => (
@@ -259,7 +262,7 @@ export default function Search() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-gray-500">No search history available.</p>
+                <p className="text-gray-500">Noch kein Suchverlauf vorhanden.</p>
               )}
             </MenuItems>
           </Menu>
@@ -267,10 +270,13 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white px-4 py-2 ml-2 rounded"
+              className="bg-gray-500 text-white p-2 ml-2 rounded"
               onClick={handleShowViews}
+              title="Lesezeichen"
             >
-              Lesezeichen
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z" />
+              </svg>
             </MenuButton>
 
             {/* Dropdown Content */}
