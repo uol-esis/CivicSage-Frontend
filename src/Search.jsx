@@ -20,6 +20,8 @@ export default function Search() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
   const [viewHistory, setViewHistory] = useState([]);
+  const [filterTitle, setFilterTitle] = useState('');
+  const [filterUrl, setFilterUrl] = useState('');
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -35,15 +37,27 @@ export default function Search() {
       history.push(query);
       localStorage.setItem('searchHistory', JSON.stringify(history)); // Save updated history
     }
+    let filters = [];
+    if (filterTitle.trim() !== '') {
+      filters.push(`title == '${filterTitle}'`);
+    }
+    if (filterUrl.trim() !== '') {
+      filters.push(`url == '${filterUrl}'`);
+    }
+    let searchString = filters.join(' AND ');
 
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
-    let searchQuery = new CivicSage.SearchQuery(query); // SearchQuery | 
+    let searchQuery = new CivicSage.SearchQuery(query);  
+    if (searchString !== '') {
+      searchQuery.filterExpression = searchString;
+    }
     let opts = {
       'pageNumber': page, // Number | Page number
       'pageSize': resultCount // Number | Page size
     };
     apiInstance.searchFiles(searchQuery, opts, (error, data, response) => {
+      console.log(JSON.stringify(searchQuery))
       setIsSearching(false);
       if (error) {
         console.error(error);
@@ -303,21 +317,53 @@ export default function Search() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
-            className="border border-gray-300 rounded px-4 py-2 ml-2 w-full"
+            className="border border-gray-300 px-4 py-2 ml-2 w-full"
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-r"
+            className="bg-blue-500 text-white pl-4 py-2"
             disabled={isSearching}
           >
             {isSearching ? (
               <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
             ) : (
-              'Search'
+              'Suchen'
             )}
           </button>
+          {/* Dropdown with search filter */}
+          <Menu as="div" className="relative inline-block text-left">
+            <MenuButton
+              className="bg-blue-500 text-white px-2 py-2 rounded-r"
+              title="Filter"
+            >
+              ▼
+            </MenuButton>
+            <MenuItems className="absolute right-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-72 z-50">
+              <div>
+                <div className="mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Titel</label>
+                  <input
+                    type="submit"
+                    className="border border-gray-300 rounded px-2 py-1 w-full"
+                    value={filterTitle}
+                    onChange={e => setFilterTitle(e.target.value)}
+                    disabled={filterUrl.trim() !== ''}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Webseite</label>
+                  <input
+                    className="border border-gray-300 rounded px-2 pt-1 w-full"
+                    value={filterUrl}
+                    onChange={e => setFilterUrl(e.target.value)}
+                    disabled={filterTitle.trim() !== ''}
+                  >
+                  </input>
+                </div>
+              </div>
+            </MenuItems>
+          </Menu>
         </form>
-        
       </div>
 
       {/*bottom part */}
@@ -421,7 +467,6 @@ export default function Search() {
                     <a href={result.url} target="_blank" rel="noopener noreferrer" className="ml-2 underline">
                       {result.url}
                     </a>
-                    <span className="ml-2 text-lg font-bold">{result.fileName}</span>
                     <span className="ml-2 text-gray-400">Score: {result.score?.toFixed(2)}</span>
                   </div>
                   <div className="text-sm">{result.text}</div>
