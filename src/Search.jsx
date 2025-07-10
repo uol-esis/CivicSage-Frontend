@@ -84,28 +84,22 @@ export default function Search() {
 
   {/* Save all locked results, so they will still be displayed in the next search */}
   useEffect(() => {
-    // Check if there are any locked results and keep them
-    if (resultsIsLocked.length === 0) {
-      return;
-    }
-    if (resultsIsLocked.some(isLocked => isLocked)) {
-      const lockedResults = results.filter((_, idx) => resultsIsLocked[idx]);
-      setLockedResults(lockedResults);
-    }    
+    const lockedResults = results.filter((_, idx) => resultsIsLocked[idx]);
+    setLockedResults(lockedResults);
   } , [resultsIsLocked]);
 
   useEffect(() => {
     if (resultPage >= 1) {
       handleSearch(resultPage);
     }
-  }, [resultPage]); // Re-run search when resultPage or resultCount
+  }, [resultPage]);
 
   useEffect(() => {
     if (pendingSearch) {
       handleSearch(0);
       setPendingSearch(false);
     }
-  }, [query]);
+  }, [query, pendingSearch]);
 
   const handleShowHistory = () => {
     const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
