@@ -15,7 +15,7 @@ export default function Search() {
   const [textSummary, setTextSummary] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [resultCount, setResultCount] = useState(10); // Default result count
+  const [resultCount, setResultCount] = useState(5); // Default result count
   const [resultPage, setResultPage] = useState(0); // Default result page
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
@@ -77,13 +77,13 @@ export default function Search() {
           allResults = results.concat(parsedResults);
         }
         setResults(allResults);
-        let initialResultsIsChecked = Array(parsedResults.length).fill(true); // Initialize all results as checked
+        let initialResultsIsChecked = Array(allResults.length).fill(true); // Initialize all results as checked
         if (page > 0) {
           initialResultsIsChecked = resultsIsChecked.concat(initialResultsIsChecked);
         }
         setResultsIsChecked(initialResultsIsChecked);
         
-        let initialResultsIsLocked = Array(parsedResults.length).fill(false); // Initialize all results as not locked
+        let initialResultsIsLocked = Array(allResults.length).fill(false); // Initialize all results as not locked
         if (page === 0) {
           lockedResults.forEach((_, idx) => {
             initialResultsIsLocked[idx] = true; // Initialize all locked results as locked
@@ -377,6 +377,7 @@ export default function Search() {
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
             <div className="flex flex-row justify-between">
               <div className="pb-2 flex flex-row items-center justify-start">
+                {/* Seitengröße anpassen aus UI entfernt
                 <label className="flex items-center">
                   <input
                     type="number"
@@ -391,6 +392,7 @@ export default function Search() {
                   ></input>
                   <span className="ml-2">Ergebnisse laden</span>
                 </label>
+                */}
               </div>
               <div className="pb-2 flex flex-row items-center justify-end">
                 <button
@@ -402,14 +404,14 @@ export default function Search() {
                 </button>
                 <button
                   onClick={handleLockAllChecked}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
+                  className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
                   disabled={isGenerating || results.length === 0}
                 >
                   Sperre Ausgewählte
                 </button>
                 <button
                   onClick={handleUnlockAll}
-                  className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+                  className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
                   disabled={isGenerating || results.length === 0}
                 >
                   Alle entsperren
@@ -417,14 +419,14 @@ export default function Search() {
 
                 <button
                   onClick={handleCheckAll}
-                  className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                  className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
                   disabled={isGenerating || results.length === 0}
                 >
                   Alle auswählen
                 </button>
                 <button
                   onClick={handleUncheckAll}
-                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
                   disabled={isGenerating || results.length === 0}
                 >
                   Alle abwählen
@@ -441,12 +443,13 @@ export default function Search() {
                   >
                     {resultsIsLocked[index] ? (
                       <svg fill="#000000" width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                      <title>locked</title>
+                      <title>Gesperrt (Artikel wird für nächste Suche behalten)</title>
                       <path d="M4 31v-16h3v-5c0-4.418 3.581-8 8-8h1c4.418 0 8 3.582 8 8v5h3v16h-23zM14.744 22.787l-0.744 5.213h3l-0.745-5.213c0.729-0.298 1.245-1.013 1.245-1.85 0-1.104-0.896-2-2-2-1.105 0-2 0.896-2 2 0 0.837 0.515 1.552 1.244 1.85zM21 10.5c0-3.038-2.463-5.5-5.5-5.5-3.038 0-5.5 2.462-5.5 5.5v4.5h11v-4.5z"></path>
                       </svg>
                     ) : (
                       <svg height="20" width="20" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" 
                         viewBox="0 0 445.186 445.186" xmlSpace="preserve">
+                      <title>Artikel sperren, um ihn für folgende Suchen zu behalten</title>
                       <g>
                         <path style={{fill:'#010002'}} d="M329.622,185.348h-6.779H138.6v-1.097v-70.198V100.25c0-46.317,37.684-83.993,83.993-83.993
                           s83.993,37.684,83.993,83.993v13.802h16.257V100.25C322.843,44.967,277.875,0,222.593,0s-100.25,44.975-100.25,100.258v85.098
@@ -469,7 +472,7 @@ export default function Search() {
                     </a>
                     <span className="ml-2 text-gray-400">Score: {result.score?.toFixed(2)}</span>
                   </div>
-                  <div className="text-sm">{result.text}</div>
+                  <div className="text-sm">{resultsIsChecked[index] && result.text}</div>
                 </div>
               )
             })}
