@@ -15,8 +15,9 @@ server {
     }
     
     # if requesting the API, proxy redirectes to the correct server
-    location /api/ {
-        proxy_pass $API_HOST$request_uri;
+    # Since the backend currently has no api/v1/ prefix, the second part of the request is captured and only the prefix is dropped
+    location ~* ^/api/v1/(?<request_path>.*)$ {
+        proxy_pass $API_HOST/$request_path;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
