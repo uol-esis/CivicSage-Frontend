@@ -1,0 +1,9 @@
+name: civicsage-frontend
+services:
+  frontend:
+    container_name: civicsage-frontend
+    build: .
+    ports:
+      - "127.0.0.1:5174:80"
+    environment:
+      - API_HOST=${API_HOST}
