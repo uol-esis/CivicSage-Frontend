@@ -1,0 +1,22 @@
+name: Deploy to dev
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Perform deploy requests
+        run: | 
+          current=$(curl -s ${{ secrets.API_HOST }}/api/stacks/${{ secrets.STACK_ID }} -H "X-API-KEY: ${{ secrets.API_KEY }}")
+          env=$(echo $current | jq '.Env')
+          wrapped=$(jq -n --argjson env "$env" '{env:$env,RepositoryAuthentication: false}')
+
+          curl -X PUT -s -o /dev/null ${{ secrets.API_HOST }}/api/stacks/${{ secrets.STACK_ID }}/git/redeploy?endpointId=${{ secrets.ENDPOINT_ID }} \
+            -H "Content-Type: application/json" \
+            -H "X-API-KEY: ${{ secrets.API_KEY }}" \
+            -d "$wrapped"
