@@ -3,6 +3,7 @@ import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import * as CivicSage from 'civic_sage';
 import { data } from 'react-router-dom';
 import { Menu, MenuItem, MenuItems, MenuButton } from '@headlessui/react';
+import ReactMarkdown from 'react-markdown';
 
 
 export default function Search() {
@@ -343,7 +344,7 @@ export default function Search() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
+            placeholder="Suchen..."
             className="border border-gray-300 px-4 py-2 ml-2 w-full"
           />
           <button
@@ -509,12 +510,12 @@ export default function Search() {
           {/* Text Area */}
 
             <div className="bg-gray-50 shadow h-full p-4 flex flex-col">
-              <textarea
-                className="w-full h-full p-2 mb-1 resize-none border border-gray-300 rounded"
-                placeholder="Generated text will be displayed here..."
-                value={textSummary}
-                readOnly>
-              </textarea>
+              <div className="w-full h-full p-2 mb-1 resize-none border border-gray-300 rounded text-left block">
+                {textSummary && !isGenerating
+                  ? <ReactMarkdown>{textSummary}</ReactMarkdown>
+                  : <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
+                }
+              </div>
               <form
                 className="flex flex-row items-center"
                 onSubmit={(e) => { e.preventDefault(); handleGenerate(); }}
