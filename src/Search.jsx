@@ -23,6 +23,7 @@ export default function Search() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
   const [viewHistory, setViewHistory] = useState([]);
+  const [textHistory, setTextHistory] = useState([]);
   const [filterTitle, setFilterTitle] = useState('');
   const [filterUrl, setFilterUrl] = useState('');
 
@@ -159,6 +160,15 @@ export default function Search() {
     alert('View saved successfully!');
   }
 
+  const handleShowTextHistory = () => {
+    const savedTextHistory = JSON.parse(localStorage.getItem('textHistory')) || [];
+    setTextHistory(savedTextHistory);
+  };
+
+  const handleTextHistoryItemClick = (item) => {
+    setTextSummary(item);
+  };
+
   {/* Functions that handle checked functionality */}
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
@@ -251,6 +261,16 @@ export default function Search() {
       } else {
         console.log('API called successfully. Returned data: ' + data.summary);
         setTextSummary(data.summary)
+        
+        // Add summary to localStorage "text history"
+        const history = JSON.parse(localStorage.getItem('testHistory')) || []; // Retrieve existing history or initialize as an empty array
+        if (!history.includes(data.summary)) { // Avoid duplicates
+          history.push(data.summary);
+          if (history.length > 10) {
+            history.splice(0, history.length - 10);
+          }
+          localStorage.setItem('testHistory', JSON.stringify(history)); // Save updated history
+        }
       }
     });
   }
@@ -520,6 +540,45 @@ export default function Search() {
                 className="flex flex-row items-center"
                 onSubmit={(e) => { e.preventDefault(); handleGenerate(); }}
               >
+                {/* Text History */}
+                <Menu as="div" className="relative inline-block text-left">
+                  {/* Dropdown Button */}
+                  <MenuButton
+                    className="bg-gray-500 text-white px-2 py-2 rounded"
+                    onClick={handleShowTextHistory}
+                    title="Textverlauf"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </MenuButton>
+
+                  {/* Dropdown Content */}
+                  <MenuItems className="absolute left-0 bottom-full mb-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
+
+                    <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
+                    {textHistory.length > 0 ? (
+                      <ul className="list-disc pl-5">
+                        {textHistory.map((item, index) => (
+                          <MenuItem key={index}>
+                            {({ active }) => (
+                              <li
+                                className={`${
+                                  active ? 'bg-gray-100' : ''
+                                } text-gray-700 cursor-pointer`}
+                                onClick={() => handleTextHistoryItemClick(item)}
+                              >
+                                {item}
+                              </li>
+                            )}
+                          </MenuItem>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500">Noch kein Textverlauf vorhanden.</p>
+                    )}
+                  </MenuItems>
+                </Menu>
                 <textarea
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
