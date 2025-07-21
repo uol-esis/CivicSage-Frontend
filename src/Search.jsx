@@ -23,6 +23,7 @@ export default function Search() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
   const [viewHistory, setViewHistory] = useState([]);
+  const [textHistory, setTextHistory] = useState([]);
   const [filterTitle, setFilterTitle] = useState('');
   const [filterUrl, setFilterUrl] = useState('');
 
@@ -159,6 +160,15 @@ export default function Search() {
     alert('View saved successfully!');
   }
 
+  const handleShowTextHistory = () => {
+    const savedTextHistory = JSON.parse(localStorage.getItem('textHistory')) || [];
+    setTextHistory(savedTextHistory);
+  };
+
+  const handleTextHistoryItemClick = (item) => {
+    setTextSummary(item);
+  };
+
   {/* Functions that handle checked functionality */}
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
@@ -251,6 +261,16 @@ export default function Search() {
       } else {
         console.log('API called successfully. Returned data: ' + data.summary);
         setTextSummary(data.summary)
+        
+        // Add summary to localStorage "text history"
+        const history = JSON.parse(localStorage.getItem('textHistory')) || []; // Retrieve existing history or initialize as an empty array
+        if (!history.includes(data.summary)) { // Avoid duplicates
+          history.push(data.summary);
+          if (history.length > 10) {
+            history.splice(0, history.length - 10);
+          }
+          localStorage.setItem('textHistory', JSON.stringify(history)); // Save updated history
+        }
       }
     });
   }
@@ -268,7 +288,7 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white px-2 py-2 rounded"
+              className="bg-gray-500 text-white px-2 py-2 rounded cursor-pointer"
               onClick={handleShowHistory}
               title="Suchverlauf"
             >
@@ -306,7 +326,7 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white p-2 ml-2 rounded"
+              className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer"
               onClick={handleShowViews}
               title="Lesezeichen"
             >
@@ -349,7 +369,7 @@ export default function Search() {
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white pl-4 py-2"
+            className="bg-blue-500 text-white pl-4 py-2 cursor-pointer"
             disabled={isSearching}
           >
             {isSearching ? (
@@ -361,7 +381,7 @@ export default function Search() {
           {/* Dropdown with search filter */}
           <Menu as="div" className="relative inline-block text-left">
             <MenuButton
-              className="bg-blue-500 text-white px-2 py-2 rounded-r"
+              className="bg-blue-500 text-white px-2 py-2 rounded-r cursor-pointer"
               title="Filter"
             >
               ▼
@@ -449,7 +469,7 @@ export default function Search() {
               <div className="pb-2 flex flex-row items-center justify-end">
                 <button
                   onClick={handleSaveView}
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
                   disabled={isGenerating || results.length === 0}
                 >
                   Als Lesezeichen speichern
@@ -498,7 +518,7 @@ export default function Search() {
             })}
             <button
               onClick={() => setResultPage(resultPage + 1)}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
               hidden={results.length === 0}
               disabled={isGenerating || isSearching}
             >+</button>
@@ -516,28 +536,71 @@ export default function Search() {
                   : <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
                 }
               </div>
+              
               <form
                 className="flex flex-row items-center"
                 onSubmit={(e) => { e.preventDefault(); handleGenerate(); }}
               >
+                
                 <textarea
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
                   placeholder="Generiere einen Text basierend auf den ausgewählten Ergebnissen!"
-                  className="border border-gray-300 rounded px-4 py-2 w-full h-[6.5rem] resize-none overflow-y-auto"
+                  className="border border-gray-300 px-4 py-2 w-full h-[6.5rem] rounded-l resize-none overflow-y-auto"
                   rows={1}
                 />
-                <button
-                  type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 h-[6.5rem] rounded-r"
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
-                  ) : (
-                    'Los'
-                  )}
-                </button>
+                <div className="flex flex-col">
+                  {/* Text History */}
+                  <Menu as="div" className="relative w-full inline-block text-left">
+                    {/* Dropdown Button */}
+                    <MenuButton
+                      className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center"
+                      onClick={handleShowTextHistory}
+                      title="Textverlauf"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </MenuButton>
+
+                    {/* Dropdown Content */}
+                    <MenuItems className="absolute right-0 w-[calc(30vw-4rem)] bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4">
+
+                      <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
+                      {textHistory.length > 0 ? (
+                        <ul className="list-disc pl-2">
+                          {textHistory.map((item, index) => (
+                            <MenuItem key={index}>
+                              {({ active }) => (
+                                <li
+                                  className={`whitespace-nowrap overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 ${
+                                    active ? 'bg-gray-100' : ''
+                                  } text-gray-700 cursor-pointer`}
+                                  onClick={() => handleTextHistoryItemClick(item)}
+                                >
+                                  {item}
+                                </li>
+                              )}
+                            </MenuItem>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-gray-500">Noch kein Textverlauf vorhanden.</p>
+                      )}
+                    </MenuItems>
+                  </Menu>
+                  <button
+                    type="submit"
+                    className="bg-blue-500 text-white px-4 py-2 h-[3.25rem] rounded-r cursor-pointer"
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+                    ) : (
+                      'Los'
+                    )}
+                  </button>
+                </div>
               </form>
             </div>
           </Panel>
