@@ -564,11 +564,11 @@ export default function Search() {
                     </MenuButton>
 
                     {/* Dropdown Content */}
-                    <MenuItems className="absolute right-0 w-[25vw] bottom-full mb-2 bg-white border border-gray-300 rounded shadow-lg p-4">
+                    <MenuItems className="absolute right-0 w-[calc(30vw-4rem)] bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4">
 
                       <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
                       {textHistory.length > 0 ? (
-                        <ul className="list-disc pl-5">
+                        <ul className="list-disc pl-2">
                           {textHistory.map((item, index) => (
                             <MenuItem key={index}>
                               {({ active }) => (
