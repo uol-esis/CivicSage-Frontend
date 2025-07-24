@@ -530,7 +530,7 @@ export default function Search() {
           {/* Text Area */}
 
             <div className="bg-gray-50 shadow h-full p-4 flex flex-col">
-              <div className="w-full h-full p-2 mb-1 resize-none border border-gray-300 rounded text-left block">
+              <div className="w-full h-full overflow-y-auto p-2 mb-1 resize-none border border-gray-300 rounded text-left block">
                 {textSummary && !isGenerating
                   ? <ReactMarkdown>{textSummary}</ReactMarkdown>
                   : <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
