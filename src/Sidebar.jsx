@@ -6,6 +6,7 @@ const menuItems = [
   { name: 'Suche', href: '/' },
   { name: 'Hochladen', href: '/upload' },
   { name: 'Feedback', href: '/feedback' },
+  { name: 'Übersicht', href: '/overview' },
 ];
 
 const bottomMenuItems = [
@@ -19,7 +20,7 @@ export default function Sidebar() {
   return (
     <nav className="fixed top-0 left-0 z-50 bg-gray-100 h-full shadow-lg transition-all duration-300 hover:w-30 w-12 group flex flex-col">
       <a href="/">
-        <span className="sr-only">Your Company</span>
+        <span className="sr-only">CivicSage</span>
         <img
           alt="Home"
           src="lupe-logo.png"
