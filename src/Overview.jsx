@@ -3,6 +3,7 @@ import * as CivicSage from 'civic_sage';
 
 export default function Overview() {
   const [content, setContent] = useState([]);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -36,24 +37,46 @@ export default function Overview() {
     });
   }
 
+  const filteredFiles = content.files?.filter(
+    file =>
+      (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
+      (file.title && file.title.toLowerCase().includes(search.toLowerCase()))
+  ) || [];
+
+  const filteredWebsites = content.websites?.filter(
+    website =>
+      (website.title && website.title.toLowerCase().includes(search.toLowerCase())) ||
+      (website.url && website.url.toLowerCase().includes(search.toLowerCase()))
+  ) || [];
+
+
   return (
   <div className="flex flex-col justify-between m-4 p-4 h-full bg-white shadow rounded-[10px]">
-    <h2 className="text-xl font-bold mb-4">
-      Übersicht aller Inhalte
-    </h2>
+    <div className="flex flex-row items-center justify-between">
+      <div />
+      <h2 className="text-xl font-bold text-center">
+        Übersicht aller Inhalte
+      </h2>
+      <input
+        type="text"
+        placeholder="Suche nach Inhalten..."
+        className="justify-self-end p-2 border rounded w-64"
+        onChange={(e) => {setSearch(e.target.value)}}
+      />
+    </div>
     <div className="overflow-y-auto h-full">
-      {content.files?.length > 0 || content.websites?.length > 0 ? (
+      {filteredFiles.length > 0 || filteredWebsites.length > 0 ? (
         <>
-          {content.files?.map((item, index) => (
+          {filteredFiles.map((item, index) => (
             <div key={`file-${index}`} className="flex mb-2 p-2 border-b">
               <span className="font-semibold pr-4">{item.fileName}</span>
               <span className="text-gray-600">{item.title}</span>
-              <button className="ml-4 text-blue-500 hover:underline" onClick={() => handleDeleteEntry(item.fileId)}>
+              <button className="absolute right-4 mr-4 text-blue-500 hover:underline" onClick={() => handleDeleteEntry(item.fileId)}>
                 Löschen
               </button>
             </div>
           ))}
-          {content.websites?.map((item, index) => (
+          {filteredWebsites.map((item, index) => (
             <div key={`website-${index}`} className="flex mb-2 p-2 border-b">
               <span className="font-semibold pr-4">{item.title}</span>
               <a className="text-gray-600" href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a>
