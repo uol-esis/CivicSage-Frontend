@@ -113,21 +113,30 @@ export default function Upload() {
       <h2 className="text-xl font-bold mb-4">
         Geben Sie einen Link ein, um den Inhalt der Webseite zur Datenbank hinzuzufügen:
       </h2>
-      <input
-        id="textInput"
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder="www.beispiel.de..."
-        className="border border-gray-300 rounded px-4 py-2 w-full mt-2"
-      />
-      <button
-        onClick={handleConfirmWebsite}
-        disabled={isWebsiteButtonDisabled}
-        className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleConfirmWebsite();
+        }}
+        className="flex flex-col justify-between h-full"
       >
-        Bestätigen
-      </button>
+        <div />
+        <input
+          id="textInput"
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="www.beispiel.de..."
+          className="border border-gray-300 rounded px-4 py-2 w-full mt-2"
+        />
+        <button
+          onClick={handleConfirmWebsite}
+          disabled={isWebsiteButtonDisabled}
+          className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
+        >
+          Bestätigen
+        </button>
+      </form>
     </div>
 
     {/* Divider */}
@@ -139,16 +148,24 @@ export default function Upload() {
 
     {/* Drag-and-Drop Upload */}
     <div className="flex flex-col mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
-      <div className="flex-1 flex flex-col">
-        <UploadComponent setFiles={setSelectedFiles} setValid={setIsValidFile} reset={resetUpload} />  
-      </div>
-      <button
-        onClick={handleUploadFiles}
-        disabled={isUploadButtonDisabled}
-        className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isUploadButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleUploadFiles();
+        }}
+        className="flex flex-col h-full"
       >
-        Bestätigen
-      </button>
+        <div className="flex-1 flex flex-col">
+          <UploadComponent setFiles={setSelectedFiles} setValid={setIsValidFile} reset={resetUpload} />  
+        </div>
+        <button
+          onClick={handleUploadFiles}
+          disabled={isUploadButtonDisabled}
+          className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isUploadButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
+        >
+          Bestätigen
+        </button>
+      </form>
     </div>
 
   </div>
