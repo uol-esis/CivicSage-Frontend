@@ -53,21 +53,16 @@ export default function Upload() {
         if (error) {
           console.error(error);
           alert('Error adding file to the database.');
-
-          setSelectedFiles([]); // Clear the selected files after successful submission
-          setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
-          setIsUploadButtonDisabled(false); // Re-enable the upload button
-          return;
+          uids[index] = undefined; // Mark this index as failed
         } else {
           console.log(`File ${file.name} uploaded successfully. UID: ${data.id}`);
-          uids[index] = data.id; // Store the UID at the correct index
-
-          // Check if all UIDs are filled
-          if (uids.filter(uid => uid !== undefined).length === selectedFiles.length) {
-            console.log("All files uploaded. Proceeding to indexing...");
-            setFileUIDs(uids);
-          }      
+          uids[index] = data.id; // Store the UID at the correct index     
         }
+        // Check if all UIDs are filled
+        if (uids.length === selectedFiles.length) {
+          console.log("All files uploaded. Proceeding to indexing...");
+          setFileUIDs(uids);
+        } 
       });
     });
   };
@@ -87,7 +82,7 @@ export default function Upload() {
     let indexFilesRequest = [];
     for (let i = 0; i < fileUIDs.length; i++) {
       if (fileUIDs[i] !== undefined) {
-        indexFilesRequest.push(new CivicSage.IndexFilesRequestInner(fileUIDs[i], selectedFiles[i].name));
+        indexFilesRequest.push(new CivicSage.IndexFilesRequestInner(fileUIDs[i], selectedFiles[i].filename));
       }
     }
     apiInstance.indexFiles(indexFilesRequest,  (error, data, response) => {
@@ -98,11 +93,10 @@ export default function Upload() {
         console.log('Files indexed successfully.');
         alert('Files indexed successfully.');
       }
-    setSelectedFiles([]); // Clear the selected files after successful submission
-    setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
-    setIsUploadButtonDisabled(false); // Re-enable the upload button
+      setSelectedFiles([]); // Clear the selected files after successful submission
+      setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
+      setIsUploadButtonDisabled(false); // Re-enable the upload button
     });
-
   }
 
 
@@ -132,9 +126,13 @@ export default function Upload() {
         <button
           onClick={handleConfirmWebsite}
           disabled={isWebsiteButtonDisabled}
-          className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
+          className={`flex justify-center items-center py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isWebsiteButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
         >
-          Bestätigen
+          {isWebsiteButtonDisabled ? (
+            <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+          ) : (
+            'Bestätigen'
+          )}
         </button>
       </form>
     </div>
@@ -161,9 +159,13 @@ export default function Upload() {
         <button
           onClick={handleUploadFiles}
           disabled={isUploadButtonDisabled}
-          className={`py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isUploadButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
+          className={`flex justify-center items-center py-2 mt-4 rounded-md text-sm font-semibold text-white shadow-sm ${isUploadButtonDisabled ? 'bg-gray-400' : 'bg-gray-600 hover:bg-indigo-500'}`}
         >
-          Bestätigen
+          {isUploadButtonDisabled ? (
+            <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+          ) : (
+            'Bestätigen'
+          )}
         </button>
       </form>
     </div>
