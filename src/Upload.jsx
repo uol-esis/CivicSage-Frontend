@@ -10,6 +10,7 @@ export default function Upload() {
   const [resetUpload, setResetUpload] = useState(false);
   const [isWebsiteButtonDisabled, setIsWebsiteButtonDisabled] = useState(false);
   const [isUploadButtonDisabled, setIsUploadButtonDisabled] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   /**
    * Uploads the website to the DB and indexes it
@@ -22,10 +23,19 @@ export default function Upload() {
     apiInstance.indexWebsite(indexWebsiteRequest, (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Error adding website to the database.');
+        let errorMsg = `Die Website "${inputValue}" konnte nicht zur Datenbank hinzugefügt werden.`;
+        try {
+          const errObj = typeof error === 'string' ? JSON.parse(error) : error;
+          if (errObj && (errObj.statusCode === 409 || errObj.status === 409)) {
+            errorMsg = `Die Website "${inputValue}" ist bereits in der Datenbank.`;
+          }
+        } catch (e) {
+          // If parsing fails, keep the default error message
+        }
+        alert(errorMsg);
       } else {
         console.log('API called successfully.');
-        alert(`${inputValue} added to the database.`);
+        showNotification(`${inputValue} wurde erfolgreich zur Datenbank hinzugefügt.`);
         setInputValue(''); // Clear the input field after successful submission
       }
       setIsWebsiteButtonDisabled(false); // Re-enable the button
@@ -52,11 +62,20 @@ export default function Upload() {
       apiInstance.uploadFile(file, (error, data, response) => {
         if (error) {
           console.error(error);
-          alert('Error adding file to the database.');
+          let errorMsg = `Die Datei "${file.name}" konnte nicht zur Datenbank hinzugefügt werden.`;
+          try {
+            const errObj = typeof error === 'string' ? JSON.parse(error) : error;
+            if (errObj && (errObj.statusCode === 409 || errObj.status === 409)) {
+              errorMsg = `Die Datei "${file.name}" ist bereits in der Datenbank.`;
+            }
+          } catch (e) {
+            // If parsing fails, keep the default error message
+          }
+          alert(errorMsg);
           uids[index] = undefined; // Mark this index as failed
         } else {
           console.log(`File ${file.name} uploaded successfully. UID: ${data.id}`);
-          uids[index] = data.id; // Store the UID at the correct index     
+          uids[index] = data.id;    
         }
         // Check if all UIDs are filled
         if (uids.length === selectedFiles.length) {
@@ -85,13 +104,19 @@ export default function Upload() {
         indexFilesRequest.push(new CivicSage.IndexFilesRequestInner(fileUIDs[i], selectedFiles[i].filename));
       }
     }
+    if (indexFilesRequest.length === 0) {
+      setSelectedFiles([]); 
+      setResetUpload(r => !r);
+      setIsUploadButtonDisabled(false);
+      return;
+    }
     apiInstance.indexFiles(indexFilesRequest,  (error, data, response) => {
       if (error) {
         console.error(error);
         alert('Error indexing files.');
       } else {
         console.log('Files indexed successfully.');
-        alert('Files indexed successfully.');
+        showNotification('Die Dateien wurden erfolgreich zur Datenbank hinzugefügt.');
       }
       setSelectedFiles([]); // Clear the selected files after successful submission
       setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
@@ -99,9 +124,18 @@ export default function Upload() {
     });
   }
 
+  function showNotification(message) {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+  }
 
   return (
   <div className="h-screen">
+    {notification && (
+      <div className="fixed top-4 left-1/2 w-full transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50 transition-all">
+        {notification}
+      </div>
+    )}
     {/* Input Field */}
     <div className="flex flex-col justify-between mt-[3vh] mx-4 p-4 h-[30vh] bg-white shadow rounded-[10px]">
       <h2 className="text-xl font-bold mb-4">
