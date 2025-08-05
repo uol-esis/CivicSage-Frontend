@@ -23,11 +23,15 @@ export default function Upload() {
     apiInstance.indexWebsite(indexWebsiteRequest, (error, data, response) => {
       if (error) {
         console.error(error);
+        console.log("Response:", response);
         let errorMsg = `Die Website "${inputValue}" konnte nicht zur Datenbank hinzugefügt werden.`;
         try {
           const errObj = typeof error === 'string' ? JSON.parse(error) : error;
           if (errObj && (errObj.statusCode === 409 || errObj.status === 409)) {
             errorMsg = `Die Website "${inputValue}" ist bereits in der Datenbank.`;
+          }
+          if (errObj && (errObj.statusCode === 413 || errObj.status === 413)) {
+            errorMsg = `Die angegebene Webseite ist zu groß und konnte nicht verarbeitet werden.`;
           }
         } catch (e) {
           // If parsing fails, keep the default error message
@@ -68,6 +72,9 @@ export default function Upload() {
             if (errObj && (errObj.statusCode === 409 || errObj.status === 409)) {
               errorMsg = `Die Datei "${file.name}" ist bereits in der Datenbank.`;
             }
+            if (errObj && (errObj.statusCode === 413 || errObj.status === 413)) {
+            errorMsg = `Die hochgeladene Datei ist zu groß und konnte nicht verarbeitet werden.`;
+          }
           } catch (e) {
             // If parsing fails, keep the default error message
           }
@@ -132,7 +139,7 @@ export default function Upload() {
   return (
   <div className="h-screen">
     {notification && (
-      <div className="fixed top-4 left-1/2 w-full transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50 transition-all">
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50 transition-all">
         {notification}
       </div>
     )}

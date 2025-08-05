@@ -469,7 +469,7 @@ export default function Search() {
               <div className="pb-2 flex flex-row items-center justify-end">
                 <button
                   onClick={handleSaveView}
-                  className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+                  className={`px-2 py-2 rounded text-white ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
                   disabled={isGenerating || results.length === 0}
                 >
                   Als Lesezeichen speichern
