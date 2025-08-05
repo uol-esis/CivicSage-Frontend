@@ -5,8 +5,8 @@ import React from 'react';
 const menuItems = [
   { name: 'Suche', href: '/' },
   { name: 'Hochladen', href: '/upload' },
-  { name: 'Feedback', href: '/feedback' },
   { name: 'Übersicht', href: '/overview' },
+  { name: 'Feedback', href: '/feedback' },
 ];
 
 const bottomMenuItems = [
