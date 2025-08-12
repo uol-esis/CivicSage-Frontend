@@ -137,14 +137,14 @@ export default function Upload() {
   }
 
   return (
-  <div className="h-screen">
+  <div className="h-screen overflow-y-auto">
     {notification && (
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50 transition-all">
         {notification}
       </div>
     )}
     {/* Input Field */}
-    <div className="flex flex-col justify-between mt-[3vh] mx-4 p-4 h-[30vh] bg-white shadow rounded-[10px]">
+    <div className="flex flex-col justify-between mt-[3vh] mx-4 p-4 min-h-[30vh] bg-white shadow rounded-[10px]">
       <h2 className="text-xl font-bold mb-4">
         Geben Sie einen Link ein, um den Inhalt der Webseite zur Datenbank hinzuzufügen:
       </h2>
@@ -186,7 +186,7 @@ export default function Upload() {
     </div>
 
     {/* Drag-and-Drop Upload */}
-    <div className="flex flex-col mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
+    <div className="flex flex-col mx-4 min-h-[50vh] bg-white shadow rounded-[10px] p-4">
       <form 
         onSubmit={(e) => {
           e.preventDefault();

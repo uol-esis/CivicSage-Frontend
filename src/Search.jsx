@@ -425,7 +425,7 @@ export default function Search() {
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
             <div className="flex flex-row justify-between">
               <div className="pb-2 flex flex-row items-center justify-start relative">
-                {/* Seitengröße anpassen aus UI entfernt
+                {/* Ergebnisanzahl pro Seite anpassen aus UI entfernt
                 <label className="flex items-center">
                   <input
                     type="number"
@@ -505,14 +505,14 @@ export default function Search() {
                     )}
                   </div>
                   
-                  <div className="text-xs text-gray-500 mb-1">
-                    <span className="ml-2 text-lg font-bold">{result.title}</span>
-                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="ml-2 underline">
+                  <div className="flex flex-col min-w-0 max-w-full text-xs text-gray-500 mb-1">
+                    <span className="text-lg ml-16 font-bold whitespace-nowrap overflow-x-auto block">{result.title}</span>
+                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="mx-2 underline text-xs whitespace-nowrap overflow-x-auto block">
                       {result.url}
                     </a>
-                    <span className="ml-2 text-gray-400">Score: {result.score?.toFixed(2)}</span>
+                    {/*<span className="ml-2 text-gray-400">Score: {result.score?.toFixed(2)}</span>*/}
                   </div>
-                  <div className="text-sm">{resultsIsChecked[index] && result.text}</div>
+                  <div className="text-sm text-left">{resultsIsChecked[index] && result.text}</div>
                 </div>
               )
             })}
@@ -521,7 +521,9 @@ export default function Search() {
               className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
               hidden={results.length === 0}
               disabled={isGenerating || isSearching}
-            >+</button>
+            >
+              +
+            </button>
             </div>
           </Panel>
           <PanelResizeHandle className="w-4 bg-gray-300"/>

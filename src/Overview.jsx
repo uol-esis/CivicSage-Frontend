@@ -68,19 +68,48 @@ export default function Overview() {
       {filteredFiles.length > 0 || filteredWebsites.length > 0 ? (
         <>
           {filteredFiles.map((item, index) => (
-            <div key={`file-${index}`} className="flex mb-2 p-2 border-b">
-              <span className="font-semibold pr-4">{item.fileName}</span>
-              <span className="text-gray-600">{item.title}</span>
-              <button className="absolute right-4 mr-4 text-blue-500 hover:underline" onClick={() => handleDeleteEntry(item.fileId)}>
+            <div
+              key={`file-${index}`}
+              className="relative flex items-center mb-2 p-2 border-b"
+            >
+              <div className="flex-1 min-w-0 flex flex-row">
+                <span className="font-semibold basis-[40%] min-w-0 pr-4 truncate block whitespace-nowrap overflow-x-auto text-left">
+                  {item.title}
+                </span>
+                <span className="text-gray-600 basis-[60%] min-w-0 block whitespace-nowrap overflow-x-auto text-left ml-2">
+                  {item.fileName}
+                </span>
+              </div>
+              <button
+                className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
+                onClick={() => handleDeleteEntry(item.fileId)}
+              >
                 Löschen
               </button>
             </div>
           ))}
           {filteredWebsites.map((item, index) => (
-            <div key={`website-${index}`} className="flex mb-2 p-2 border-b">
-              <span className="font-semibold pr-4">{item.title}</span>
-              <a className="text-gray-600" href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a>
-              <button className="absolute right-4 mr-4 text-blue-500 hover:underline" onClick={() => handleDeleteEntry(item.websiteId)}>
+            <div
+              key={`website-${index}`}
+              className="relative flex items-center mb-2 p-2 border-b"
+            >
+              <div className="flex-1 min-w-0 flex flex-row">
+                <span className="font-semibold basis-[40%] min-w-0 pr-4 truncate block whitespace-nowrap overflow-x-auto text-left">
+                  {item.title}
+                </span>
+                <a
+                  className="text-gray-600 basis-[60%] min-w-0 block whitespace-nowrap overflow-x-auto text-left ml-2"
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {item.url}
+                </a>
+              </div>
+              <button
+                className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
+                onClick={() => handleDeleteEntry(item.websiteId)}
+              >
                 Löschen
               </button>
             </div>
