@@ -137,7 +137,7 @@ export default function Upload() {
   }
 
   return (
-  <div className="h-screen overflow-y-auto">
+  <div className="h-screen flex-1 flex-col overflow-y-auto">
     {notification && (
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50 transition-all">
         {notification}
@@ -186,7 +186,7 @@ export default function Upload() {
     </div>
 
     {/* Drag-and-Drop Upload */}
-    <div className="flex flex-col flex-1 mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
+    <div className="flex flex-1 mx-4 min-h-[50vh] bg-white shadow rounded-[10px] p-4">
       <form 
         onSubmit={(e) => {
           e.preventDefault();
