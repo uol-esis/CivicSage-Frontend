@@ -37,6 +37,13 @@ export default function Overview() {
     });
   }
 
+  const handleUpdateWebsite = (ids) => {
+    alert('Update functionality is not implemented yet. IDS: ' + ids.join(', '));
+    return;
+    // Placeholder for update functionality
+  }
+
+
   const filteredFiles = content.files?.filter(
     file =>
       (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
@@ -57,12 +64,20 @@ export default function Overview() {
       <h2 className="text-xl font-bold text-center">
         Übersicht aller Inhalte
       </h2>
+      <div>
+      <button
+        className="flex-shrink-0 mr-4 text-blue-500 hover:underline"
+        onClick={() => handleUpdateWebsite(filteredWebsites.map(item => item.websiteId))}
+      >
+        Update alle Websites
+      </button>
       <input
         type="text"
         placeholder="Suche nach Inhalten..."
         className="justify-self-end p-2 border rounded w-64"
         onChange={(e) => {setSearch(e.target.value)}}
       />
+      </div>
     </div>
     <div className="overflow-y-auto h-full">
       {filteredFiles.length > 0 || filteredWebsites.length > 0 ? (
@@ -80,6 +95,11 @@ export default function Overview() {
                   {item.fileName}
                 </span>
               </div>
+              <button
+                className="flex-shrink-0 ml-4 text-white hover:underline"
+              >
+                Update
+              </button>
               <button
                 className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
                 onClick={() => handleDeleteEntry(item.fileId)}
@@ -106,6 +126,12 @@ export default function Overview() {
                   {item.url}
                 </a>
               </div>
+              <button
+                className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
+                onClick={() => handleUpdateWebsite([item.websiteId])}
+              >
+                Update
+              </button>
               <button
                 className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
                 onClick={() => handleDeleteEntry(item.websiteId)}
