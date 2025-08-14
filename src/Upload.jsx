@@ -153,7 +153,7 @@ export default function Upload() {
           e.preventDefault();
           handleConfirmWebsite();
         }}
-        className="flex flex-col justify-between h-full"
+        className="flex flex-col justify-between h-full flex-1"
       >
         <div />
         <input
@@ -186,17 +186,15 @@ export default function Upload() {
     </div>
 
     {/* Drag-and-Drop Upload */}
-    <div className="flex flex-col mx-4 min-h-[50vh] bg-white shadow rounded-[10px] p-4">
+    <div className="flex flex-col flex-1 mx-4 h-[50vh] bg-white shadow rounded-[10px] p-4">
       <form 
         onSubmit={(e) => {
           e.preventDefault();
           handleUploadFiles();
         }}
-        className="flex flex-col h-full"
+        className="flex flex-col flex-1 justify-between"
       >
-        <div className="flex-1 flex flex-col">
-          <UploadComponent setFiles={setSelectedFiles} setValid={setIsValidFile} reset={resetUpload} />  
-        </div>
+        <UploadComponent setFiles={setSelectedFiles} setValid={setIsValidFile} reset={resetUpload} />  
         <button
           onClick={handleUploadFiles}
           disabled={isUploadButtonDisabled}
@@ -209,7 +207,7 @@ export default function Upload() {
           )}
         </button>
       </form>
-    </div>
+</div>
 
   </div>
 );}

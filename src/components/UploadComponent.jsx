@@ -67,16 +67,16 @@ export default function UploadComponent({setFiles, setValid, reset}) {
     };
 
     return (
-      <div className="flex flex-col h-full w-full bg-white rounded-[10px]">
+      <div className="flex flex-col flex-1 h-full w-full bg-white rounded-[10px]">
         <h2 className="text-xl font-bold mb-4">
           Wählen Sie eine Datei oder einen Ordner zum Hochladen aus
         </h2>
-        <div className="flex flex-row h-full gap-4">
+        <div className="flex flex-row flex-1 h-full gap-4">
           {/* Button for selecting individual files */}
           <button
             type="button"
             onClick={() => fileInputRef.current.click()}
-            className="relative flex-1 w-full h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {selectedFiles.length === 1 ? (
               <>
@@ -136,7 +136,7 @@ export default function UploadComponent({setFiles, setValid, reset}) {
         <button
           type="button"
           onClick={() => directoryInputRef.current.click()}
-          className="relative flex-1 w-full h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           {selectedFiles.length > 1 ? (
             <>
