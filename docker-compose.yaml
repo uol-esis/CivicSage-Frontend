@@ -2,6 +2,7 @@ name: civicsage-frontend
 services:
   frontend:
     container_name: civicsage-frontend
+    restart: unless-stopped
     build: .
     ports:
       - "127.0.0.1:5174:80"
