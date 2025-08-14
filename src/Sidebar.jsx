@@ -29,12 +29,13 @@ export default function Sidebar() {
       </a>
       <ul className="flex flex-col gap-y-4 p-4">
         {menuItems
-          .filter((item) => item.name === 'Home' || item.href !== currentPath)
           .map((item) => (
             <li key={item.name} className="overflow-hidden">
               <a
                 href={item.href}
-                className="text-sm font-semibold text-gray-900 hover:scale-105 transition-transform block whitespace-nowrap"
+                className={`text-sm font-semibold block whitespace-nowrap transition-transform hover:scale-105 text-gray-900 ${
+                  currentPath === item.href ? 'group-hover:bg-gray-300 text-blue-600 rounded px-2 py-1' : ''
+                }`}
               >
                 <span className="hidden group-hover:block">
                   {item.name}
