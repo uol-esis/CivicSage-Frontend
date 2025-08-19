@@ -4,6 +4,7 @@ import * as CivicSage from 'civic_sage';
 export default function Overview() {
   const [content, setContent] = useState([]);
   const [search, setSearch] = useState('');
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -12,6 +13,8 @@ export default function Overview() {
     apiInstance.getAllIndexedSources({}, (error, data, response) => {
       if (error) {
         console.error(error);
+        showNotification('Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.', 'bg-red-500');
+        setContent([]);
       } else {
         setContent(data);
       }
@@ -25,9 +28,9 @@ export default function Overview() {
     apiInstance.deleteIndexedSource(id, (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Error deleting entry.');
+        alert('Der Eintrag konnte nicht gelöscht werden. Bitte versuche es später erneut.');
       } else {
-        alert('Entry deleted successfully.');
+        showNotification('Eintrag erfolgreich gelöscht.');
         setContent(prevContent => ({
           ...prevContent,
           files: prevContent.files.filter(file => file.fileId !== id),
@@ -48,6 +51,7 @@ export default function Overview() {
       apiInstance.getAllIndexedSources({}, (error, data, response) => {
         if (error) {
           console.error(error);
+          showNotification('Es gab einen Fehler beim Anzeigen der Websites. Bitte lade die Seite neu.', 'bg-red-500');
         } else {
           setContent(data);
         }
@@ -76,9 +80,18 @@ export default function Overview() {
       (website.uploadDate && website.uploadDate.toLowerCase().includes(search.toLowerCase()))
   ) || [];
 
+  function showNotification(message, color = 'bg-green-500') {
+    setNotification({ message, color });
+    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+  }
 
   return (
   <div className="flex flex-col justify-between m-4 p-4 h-full bg-white shadow rounded-[10px]">
+    {notification && (
+      <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
+        {notification.message}
+      </div>
+    )}
     <div className="flex flex-row items-center justify-between">
       <div />
       <h2 className="text-xl font-bold text-center">
