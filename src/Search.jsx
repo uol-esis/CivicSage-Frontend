@@ -23,7 +23,7 @@ export default function Search() {
   const [resultPage, setResultPage] = useState(0); // Default result page
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
-  const [viewHistory, setViewHistory] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
   const [textHistory, setTextHistory] = useState([]);
   const [filterTitle, setFilterTitle] = useState('');
   const [filterUrl, setFilterUrl] = useState('');
@@ -135,22 +135,22 @@ export default function Search() {
     setPendingSearch(true);
   };
 
-  const handleShowViews = () => {
-    const savedViews = JSON.parse(localStorage.getItem('savedViews')) || [];
-    setViewHistory(savedViews);
+  const handleShowBookmarks = () => {
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+    setBookmarks(bookmarks);
   };
 
-  const handleViewItemClick = (view) => {
-    setQuery(view.query);
-    setResults(view.results);
-    setResultsIsChecked(view.resultsIsChecked);
-    setResultsIsPinned(view.resultsIsPinned);
-    setPrompt(view.prompt);
-    setTextSummary(view.textSummary);
+  const handleBookmarksItemClick = (bookmark) => {
+    setQuery(bookmark.query);
+    setResults(bookmark.results);
+    setResultsIsChecked(bookmark.resultsIsChecked);
+    setResultsIsPinned(bookmark.resultsIsPinned);
+    setPrompt(bookmark.prompt);
+    setTextSummary(bookmark.textSummary);
   }
 
-  const handleSaveView = () => {
-    const view = {
+  const handleSaveBookmark = () => {
+    const bookmark = {
       name: query,
       query: query,
       results: results,
@@ -159,33 +159,33 @@ export default function Search() {
       prompt: prompt,
       textSummary: textSummary
     };
-    const viewList = JSON.parse(localStorage.getItem('savedViews')) || [];
-    viewList.push(view);
-    localStorage.setItem('savedViews', JSON.stringify(viewList));
-    alert('View saved successfully!');
+    const bookmarkList = JSON.parse(localStorage.getItem('bookmarks')) || [];
+    bookmarkList.push(bookmark);
+    localStorage.setItem('bookmarks', JSON.stringify(bookmarkList));
+    alert('Bookmark saved successfully!');
   }
 
   const handleDeleteBookmark = (name) => {
-    // Remove from viewHistory
-    const updatedViews = viewHistory.filter(view => view.name !== name);
-    setViewHistory(updatedViews);
+    // Remove from bookmarks
+    const updatedBookmarks = bookmarks.filter(bookmark => bookmark.name !== name);
+    setBookmarks(updatedBookmarks);
 
     // Remove from localStorage
-    localStorage.setItem('savedViews', JSON.stringify(updatedViews));
+    localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
   };
 
   // Save handler
   const handleEditBookmarkSubmit = (e, oldName) => {
     e.preventDefault();
     if (!editingName.trim()) return;
-    const updatedViews = viewHistory.map(view =>
-      view.name === oldName ? { ...view, name: editingName } : view
+    const updatedBookmarks = bookmarks.map(bookmark =>
+      bookmark.name === oldName ? { ...bookmark, name: editingName } : bookmark
     );
-    setViewHistory(updatedViews);
-    localStorage.setItem('savedViews', JSON.stringify(updatedViews));
+    setBookmarks(updatedBookmarks);
+    localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
     setEditingBookmark(null);
     setEditingName('');
-    handleShowViews(); // Refresh the view list
+    handleShowBookmarks(); // Refresh the bookmark list
   };
 
 
@@ -356,7 +356,7 @@ export default function Search() {
             {/* Dropdown Button */}
             <MenuButton
               className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer"
-              onClick={handleShowViews}
+              onClick={handleShowBookmarks}
               title="Lesezeichen"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -367,9 +367,9 @@ export default function Search() {
             {/* Dropdown Content */}
             <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
               <h3 className="text-lg font-bold mb-2">Lesezeichen:</h3>
-              {viewHistory.length > 0 ? (
+              {bookmarks.length > 0 ? (
                 <ul className="list-disc pl-5">
-                  {viewHistory.map((item, index) => (
+                  {bookmarks.map((item, index) => (
                     <MenuItem key={index}>
                       {({ active }) => (
                         <li
@@ -402,7 +402,7 @@ export default function Search() {
                                   />
                                 </div>
                               ) : (
-                                <span className="flex-1 overflow-y-auto" onClick={() => handleViewItemClick(item)}>{item.name}</span>
+                                <span className="flex-1 overflow-y-auto" onClick={() => handleBookmarksItemClick(item)}>{item.name}</span>
                               )}
                             </div>
                             <button
@@ -547,8 +547,8 @@ export default function Search() {
               </div>
               <div className="pb-2 flex flex-row items-center justify-end">
                 <button
-                  onClick={handleSaveView}
-                  className={`px-2 py-2 rounded text-white ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
+                  onClick={handleSaveBookmark}
+                  className={`px-2 py-2 rounded text-white ml-16 ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
                   disabled={isGenerating || results.length === 0}
                 >
                   Als Lesezeichen speichern
