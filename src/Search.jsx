@@ -4,6 +4,7 @@ import * as CivicSage from 'civic_sage';
 import { data } from 'react-router-dom';
 import { Menu, MenuItem, MenuItems, MenuButton } from '@headlessui/react';
 import ReactMarkdown from 'react-markdown';
+import { q } from 'framer-motion/client';
 
 
 export default function Search() {
@@ -26,6 +27,9 @@ export default function Search() {
   const [textHistory, setTextHistory] = useState([]);
   const [filterTitle, setFilterTitle] = useState('');
   const [filterUrl, setFilterUrl] = useState('');
+  const [editingBookmark, setEditingBookmark] = useState(null);
+  const [editingName, setEditingName] = useState('');
+
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -147,6 +151,7 @@ export default function Search() {
 
   const handleSaveView = () => {
     const view = {
+      name: query,
       query: query,
       results: results,
       resultsIsChecked: resultsIsChecked,
@@ -159,6 +164,36 @@ export default function Search() {
     localStorage.setItem('savedViews', JSON.stringify(viewList));
     alert('View saved successfully!');
   }
+
+  const handleDeleteBookmark = (name) => {
+    // Remove from viewHistory
+    const updatedViews = viewHistory.filter(view => view.name !== name);
+    setViewHistory(updatedViews);
+
+    // Remove from localStorage
+    localStorage.setItem('savedViews', JSON.stringify(updatedViews));
+  };
+
+  // Edit handler
+  const handleEditBookmark = (name) => {
+    setEditingBookmark(name);
+    setEditingName(name);
+  };
+
+  // Save handler
+  const handleEditBookmarkSubmit = (e, oldName) => {
+    e.preventDefault();
+    if (!editingName.trim()) return;
+    const updatedViews = viewHistory.map(view =>
+      view.name === oldName ? { ...view, name: editingName } : view
+    );
+    setViewHistory(updatedViews);
+    localStorage.setItem('savedViews', JSON.stringify(updatedViews));
+    setEditingBookmark(null);
+    setEditingName('');
+    handleShowViews(); // Refresh the view list
+  };
+
 
   const handleShowTextHistory = () => {
     const savedTextHistory = JSON.parse(localStorage.getItem('textHistory')) || [];
@@ -347,9 +382,61 @@ export default function Search() {
                           className={`${
                             active ? 'bg-gray-100' : ''
                           } text-gray-700 cursor-pointer`}
-                          onClick={() => handleViewItemClick(item)}
+                          onClick={editingBookmark === item.name ? undefined : () => handleViewItemClick(item)}
                         >
-                          {item.query}
+                          <div className="relative flex items-center mb-2 p-2 border-b">
+                            <div className="flex-1 min-w-0 flex flex-row">
+                              {editingBookmark === item.name ? (
+                                <form
+
+                                  onSubmit={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleEditBookmarkSubmit(e, item.name);
+                                  }}
+                                  className="flex-1"
+                                >
+                                  <input
+                                    type="text"
+                                    value={editingName}
+                                    autoFocus
+                                    onChange={e => setEditingName(e.target.value)}
+                                    onBlur={e => setEditingBookmark(null)}
+                                    className="border px-1 py-0.5 rounded w-full"
+                                    onKeyDown={e => {
+                                      e.stopPropagation();
+                                      if (e.key === 'Escape') setEditingBookmark(null);
+                                    }}
+                                  />
+                                </form>
+                              ) : (
+                                <span className="flex-1">{item.name}</span>
+                              )}
+                            </div>
+                            <button
+                              className="flex-shrink-0 ml-2 text-blue-500 hover:underline"
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleEditBookmark(item.name)
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.862 3.487a2.25 2.25 0 113.182 3.182L7.75 18.963l-4 1 1-4L16.862 3.487z" />
+                              </svg>
+                            </button>
+                            <button
+                              className="flex-shrink-0 ml-2 text-red-500 hover:underline"
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleDeleteBookmark(item.name)
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                          
                         </li>
                       )}
                     </MenuItem>
