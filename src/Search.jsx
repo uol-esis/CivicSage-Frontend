@@ -174,12 +174,6 @@ export default function Search() {
     localStorage.setItem('savedViews', JSON.stringify(updatedViews));
   };
 
-  // Edit handler
-  const handleEditBookmark = (name) => {
-    setEditingBookmark(name);
-    setEditingName(name);
-  };
-
   // Save handler
   const handleEditBookmarkSubmit = (e, oldName) => {
     e.preventDefault();
@@ -382,42 +376,42 @@ export default function Search() {
                           className={`${
                             active ? 'bg-gray-100' : ''
                           } text-gray-700 cursor-pointer`}
-                          onClick={editingBookmark === item.name ? undefined : () => handleViewItemClick(item)}
                         >
                           <div className="relative flex items-center mb-2 p-2 border-b">
                             <div className="flex-1 min-w-0 flex flex-row">
                               {editingBookmark === item.name ? (
-                                <form
-
-                                  onSubmit={e => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleEditBookmarkSubmit(e, item.name);
-                                  }}
-                                  className="flex-1"
-                                >
+                                <div className="flex-1">
                                   <input
                                     type="text"
                                     value={editingName}
                                     autoFocus
                                     onChange={e => setEditingName(e.target.value)}
-                                    onBlur={e => setEditingBookmark(null)}
+                                    onBlur={e => {
+                                      handleEditBookmarkSubmit(e, item.name);
+                                      setEditingBookmark(null);
+                                    }}
                                     className="border px-1 py-0.5 rounded w-full"
                                     onKeyDown={e => {
                                       e.stopPropagation();
                                       if (e.key === 'Escape') setEditingBookmark(null);
+                                      if (e.key === 'Enter') {
+                                        handleEditBookmarkSubmit(e, item.name);
+                                        setEditingBookmark(null);
+                                      }
                                     }}
                                   />
-                                </form>
+                                </div>
                               ) : (
-                                <span className="flex-1">{item.name}</span>
+                                <span className="flex-1 overflow-y-auto" onClick={() => handleViewItemClick(item)}>{item.name}</span>
                               )}
                             </div>
                             <button
                               className="flex-shrink-0 ml-2 text-blue-500 hover:underline"
                               onClick={e => {
                                 e.stopPropagation();
-                                handleEditBookmark(item.name)
+                                e.preventDefault();
+                                setEditingBookmark(item.name);
+                                setEditingName(item.name);
                               }}
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -427,7 +421,6 @@ export default function Search() {
                             <button
                               className="flex-shrink-0 ml-2 text-red-500 hover:underline"
                               onClick={e => {
-                                e.stopPropagation();
                                 handleDeleteBookmark(item.name)
                               }}
                             >
