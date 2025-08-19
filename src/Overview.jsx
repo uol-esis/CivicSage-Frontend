@@ -103,7 +103,7 @@ export default function Overview() {
         className="flex-shrink-0 mr-4 text-blue-500 hover:underline"
         onClick={() => handleUpdateWebsite(filteredWebsites.map(item => item.websiteId))}
       >
-        Update angezeigte Websites
+        Aktualisiere angezeigte Websites
       </button>
       <input
         type="text"
@@ -184,7 +184,7 @@ export default function Overview() {
                 className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
                 onClick={() => handleUpdateWebsite([item.websiteId])}
               >
-                Update
+                Aktualisieren
               </button>
               <button
                 className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
