@@ -38,10 +38,20 @@ export default function Overview() {
   }
 
   const handleUpdateWebsite = (ids) => {
-    alert('Update functionality is not implemented yet. IDS: ' + ids.join(', '));
-    let apiInstance = new CivicSage.DefaultApi();
-    let updateIndexedWebsiteRequest = new CivicSage.UpdateIndexedWebsiteRequest(ids); 
+    //alert('Update functionality is not implemented yet. IDS: ' + ids.join(', '));
+    console.log('Update functionality is not implemented yet. IDS:', ids);
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let updateIndexedWebsiteRequest = new CivicSage.UpdateIndexedWebsiteRequest(); 
+    updateIndexedWebsiteRequest.ids = ids;
     apiInstance.updateIndexedWebsite(updateIndexedWebsiteRequest, (error, data, response) => {
+      apiInstance.getAllIndexedSources({}, (error, data, response) => {
+        if (error) {
+          console.error(error);
+        } else {
+          setContent(data);
+        }
+      });
       if (error) {
         console.error(error);
         alert('Ups, da ist etwas schief gelaufen. Bitte versuche es später erneut. Alternativ, versuche weniger Websites auf einmal zu aktualisieren oder lösche die Seite manuell und lade sie erneut hoch.');
@@ -105,7 +115,14 @@ export default function Overview() {
                   {item.fileName}
                 </span>
                 <span className="text-gray-600 basis-[15%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-2">
-                  {item.uploadDate ? new Date(item.uploadDate).toLocaleDateString('de-DE') : 'Unbekannt'}
+                  {item.uploadDate ? new Date(item.uploadDate).toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'Unbekannt'}
                 </span>
               </div>
               <button
@@ -139,7 +156,14 @@ export default function Overview() {
                   {item.url}
                 </a>
                 <span className="text-gray-600 basis-[15%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-2">
-                  {item.uploadDate ? new Date(item.uploadDate).toLocaleDateString('de-DE') : 'Unbekannt'}
+                  {item.uploadDate ? new Date(item.uploadDate).toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'Unbekannt'}
                 </span>
               </div>
               <button
