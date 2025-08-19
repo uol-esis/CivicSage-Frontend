@@ -5,6 +5,7 @@ export default function Overview() {
   const [content, setContent] = useState([]);
   const [search, setSearch] = useState('');
   const [notification, setNotification] = useState(null);
+  
 
   useEffect(() => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
