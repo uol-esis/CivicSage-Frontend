@@ -391,7 +391,6 @@ export default function Search() {
                 <div className="mb-2">
                   <label className="block text-sm font-medium text-gray-700">Titel</label>
                   <input
-                    type="submit"
                     className="border border-gray-300 rounded px-2 py-1 w-full"
                     value={filterTitle}
                     onChange={e => setFilterTitle(e.target.value)}
@@ -506,10 +505,20 @@ export default function Search() {
                   </div>
                   
                   <div className="flex flex-col min-w-0 max-w-full text-xs text-gray-500 mb-1">
-                    <span className="text-lg ml-16 font-bold whitespace-nowrap overflow-x-auto block">{result.title}</span>
-                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="mx-2 underline text-xs whitespace-nowrap overflow-x-auto block">
-                      {result.url}
-                    </a>
+                    <span className="text-lg ml-16 font-bold whitespace-nowrap overflow-x-auto block">
+                      {result.title}
+                    </span>
+                    <div className="flex flex-row items-center justify-center whitespace-nowrap overflow-x-auto">
+                      <span className="mx-2 text-xs whitespace-nowrap overflow-x-auto block">
+                        {result.fileName}
+                      </span>
+                      <a href={result.url} target="_blank" rel="noopener noreferrer" className="mx-2 underline text-xs whitespace-nowrap overflow-x-auto block">
+                        {result.url}
+                      </a>
+                      <span className="text-xs text-gray-400">
+                        {result.uploadDate ? new Date(result.uploadDate).toLocaleDateString('de-DE') : 'Unbekannt'}
+                      </span>
+                    </div>
                     {/*<span className="ml-2 text-gray-400">Score: {result.score?.toFixed(2)}</span>*/}
                   </div>
                   <div className="text-sm text-left">{resultsIsChecked[index] && result.text}</div>

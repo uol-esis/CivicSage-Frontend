@@ -37,16 +37,43 @@ export default function Overview() {
     });
   }
 
+  const handleUpdateWebsite = (ids) => {
+    //alert('Update functionality is not implemented yet. IDS: ' + ids.join(', '));
+    console.log('Update functionality is not implemented yet. IDS:', ids);
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let updateIndexedWebsiteRequest = new CivicSage.UpdateIndexedWebsiteRequest(); 
+    updateIndexedWebsiteRequest.ids = ids;
+    apiInstance.updateIndexedWebsite(updateIndexedWebsiteRequest, (error, data, response) => {
+      apiInstance.getAllIndexedSources({}, (error, data, response) => {
+        if (error) {
+          console.error(error);
+        } else {
+          setContent(data);
+        }
+      });
+      if (error) {
+        console.error(error);
+        alert('Ups, da ist etwas schief gelaufen. Bitte versuche es später erneut. Alternativ, versuche weniger Websites auf einmal zu aktualisieren oder lösche die Seite manuell und lade sie erneut hoch.');
+      } else {
+        console.log('API called successfully.');
+      }
+    });
+  }
+
+
   const filteredFiles = content.files?.filter(
     file =>
       (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
-      (file.title && file.title.toLowerCase().includes(search.toLowerCase()))
+      (file.title && file.title.toLowerCase().includes(search.toLowerCase())) ||
+      (file.uploadDate && file.uploadDate.toLowerCase().includes(search.toLowerCase()))
   ) || [];
 
   const filteredWebsites = content.websites?.filter(
     website =>
       (website.title && website.title.toLowerCase().includes(search.toLowerCase())) ||
-      (website.url && website.url.toLowerCase().includes(search.toLowerCase()))
+      (website.url && website.url.toLowerCase().includes(search.toLowerCase())) ||
+      (website.uploadDate && website.uploadDate.toLowerCase().includes(search.toLowerCase()))
   ) || [];
 
 
@@ -57,12 +84,20 @@ export default function Overview() {
       <h2 className="text-xl font-bold text-center">
         Übersicht aller Inhalte
       </h2>
+      <div>
+      <button
+        className="flex-shrink-0 mr-4 text-blue-500 hover:underline"
+        onClick={() => handleUpdateWebsite(filteredWebsites.map(item => item.websiteId))}
+      >
+        Update angezeigte Websites
+      </button>
       <input
         type="text"
         placeholder="Suche nach Inhalten..."
         className="justify-self-end p-2 border rounded w-64"
         onChange={(e) => {setSearch(e.target.value)}}
       />
+      </div>
     </div>
     <div className="overflow-y-auto h-full">
       {filteredFiles.length > 0 || filteredWebsites.length > 0 ? (
@@ -76,10 +111,25 @@ export default function Overview() {
                 <span className="font-semibold basis-[40%] min-w-0 pr-4 truncate block whitespace-nowrap overflow-x-auto text-left">
                   {item.title}
                 </span>
-                <span className="text-gray-600 basis-[60%] min-w-0 block whitespace-nowrap overflow-x-auto text-left ml-2">
+                <span className="text-gray-600 basis-[45%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-4">
                   {item.fileName}
                 </span>
+                <span className="text-gray-600 basis-[15%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-2">
+                  {item.uploadDate ? new Date(item.uploadDate).toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'Unbekannt'}
+                </span>
               </div>
+              <button
+                className="flex-shrink-0 ml-4 text-white hover:underline"
+              >
+                Update
+              </button>
               <button
                 className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
                 onClick={() => handleDeleteEntry(item.fileId)}
@@ -98,14 +148,30 @@ export default function Overview() {
                   {item.title}
                 </span>
                 <a
-                  className="text-gray-600 basis-[60%] min-w-0 block whitespace-nowrap overflow-x-auto text-left ml-2"
+                  className="text-gray-600 basis-[45%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-4"
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {item.url}
                 </a>
+                <span className="text-gray-600 basis-[15%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-2">
+                  {item.uploadDate ? new Date(item.uploadDate).toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'Unbekannt'}
+                </span>
               </div>
+              <button
+                className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
+                onClick={() => handleUpdateWebsite([item.websiteId])}
+              >
+                Update
+              </button>
               <button
                 className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
                 onClick={() => handleDeleteEntry(item.websiteId)}
