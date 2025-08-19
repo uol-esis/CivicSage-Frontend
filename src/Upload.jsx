@@ -27,6 +27,9 @@ export default function Upload() {
         let errorMsg = `Die Website "${inputValue}" konnte nicht zur Datenbank hinzugefügt werden.`;
         try {
           const errObj = typeof error === 'string' ? JSON.parse(error) : error;
+          if (errObj && (errObj.statusCode === 400 || errObj.status === 400)) {
+            errorMsg = `Die URL "${inputValue}" konnte nicht gelesen werden. Bitte überprüfen Sie die Eingabe. Falls die URL korrekt ist, könnte es sein, dass die Seite automatische Anfragen blockiert.`;
+          }
           if (errObj && (errObj.statusCode === 409 || errObj.status === 409)) {
             errorMsg = `Die Website "${inputValue}" ist bereits in der Datenbank.`;
           }
@@ -120,7 +123,7 @@ export default function Upload() {
     apiInstance.indexFiles(indexFilesRequest,  (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Error indexing files.');
+        alert('Es gab einen Fehler beim Lesen der Dateien. Bitte versuche es erneut.');
       } else {
         console.log('Files indexed successfully.');
         showNotification('Die Dateien wurden erfolgreich zur Datenbank hinzugefügt.');
@@ -131,16 +134,16 @@ export default function Upload() {
     });
   }
 
-  function showNotification(message) {
-    setNotification(message);
+  function showNotification(message, color = 'bg-green-500') {
+    setNotification({ message, color });
     setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
   }
 
   return (
   <div className="h-screen flex-1 flex-col overflow-y-auto">
     {notification && (
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50 transition-all">
-        {notification}
+      <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
+        {notification.message}
       </div>
     )}
     {/* Input Field */}

@@ -29,6 +29,7 @@ export default function Search() {
   const [filterUrl, setFilterUrl] = useState('');
   const [editingBookmark, setEditingBookmark] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [notification, setNotification] = useState(null);
 
 
 
@@ -69,7 +70,12 @@ export default function Search() {
       setIsSearching(false);
       if (error) {
         console.error(error);
-        alert('Error searching files. Please try again.');
+        if (error.status === 503) {
+          alert('Das temporäre Limit des LLMs wurde überschritten. Dies kann passieren, wenn zu viele Anfragen von mehreren Nutzern in kurzer Zeit gestellt werden. Bitte versuchen Sie es später erneut.');
+        }
+        else{
+          alert('Fehler bei der Suche nach Dateien. Bitte versuchen Sie es erneut.');
+        }
       } else {
         // Parse the JSON string from response.text
         let parsedResults = [];
@@ -162,7 +168,7 @@ export default function Search() {
     const bookmarkList = JSON.parse(localStorage.getItem('bookmarks')) || [];
     bookmarkList.push(bookmark);
     localStorage.setItem('bookmarks', JSON.stringify(bookmarkList));
-    alert('Bookmark saved successfully!');
+    showNotification('Bookmark saved successfully!');
   }
 
   const handleDeleteBookmark = (name) => {
@@ -304,9 +310,19 @@ export default function Search() {
     });
   }
 
+  function showNotification(message, color = 'bg-green-500') {
+    setNotification({ message, color });
+    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+  }
+
 
   return (
     <div className="h-screen flex flex-col">
+      {notification && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
+          {notification.message}
+        </div>
+      )}
       {/* Sticky Search Bar */}
       <div className="bg-white z-10 sticky top-0 p-4 shadow">
         <form
