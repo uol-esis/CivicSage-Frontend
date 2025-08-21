@@ -30,6 +30,7 @@ export default function Search() {
   const [editingBookmark, setEditingBookmark] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [notification, setNotification] = useState(null);
+  const [autoTextNotification, setAutoTextNotification] = useState(null);
 
 
 
@@ -269,6 +270,13 @@ export default function Search() {
   };
 
 
+  useEffect(() => {
+    if (results.length > 0) {
+      handleGenerate();
+      setAutoTextNotification({ message: <>Diese Zusammenfassung wird automatisch generiert. Für <b>bessere</b> Antworten, versuche die Ergebnisse links manuell auszuwählen oder den Prompt anzupassen!</>, color: 'bg-yellow-500' });
+    }
+  }, [results]);
+
   {/* Takes all checked boxes and tells the LLM to generate a summary based off of it*/}
   const handleGenerate = () => {
     const resultIds = []
@@ -343,7 +351,7 @@ export default function Search() {
             </MenuButton>
 
             {/* Dropdown Content */}
-            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
+            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64">
               <h3 className="text-lg font-bold mb-2">Suchverlauf:</h3>
               {searchHistory.length > 0 ? (
                 <ul className="list-disc pl-5">
@@ -381,7 +389,7 @@ export default function Search() {
             </MenuButton>
 
             {/* Dropdown Content */}
-            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64">
+            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64">
               <h3 className="text-lg font-bold mb-2">Lesezeichen:</h3>
               {bookmarks.length > 0 ? (
                 <ul className="list-disc pl-5">
@@ -516,7 +524,7 @@ export default function Search() {
           className="flex-1" 
         >
           {/* Results Section */}
-          <Panel defaultSize={70} minSize={30} className="flex flex-col h-full">
+          <Panel defaultSize={50} minSize={20} className="flex flex-col h-full">
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
             <div className="flex flex-row justify-between">
               <div className="pb-2 flex flex-row items-center justify-start relative">
@@ -633,15 +641,32 @@ export default function Search() {
           </Panel>
           <PanelResizeHandle className="w-4 bg-gray-300"/>
           
-          <Panel defaultSize={30} minSize={30} className="flex flex-col">
+          <Panel defaultSize={50} minSize={20} className="flex flex-col">
           {/* Text Area */}
 
             <div className="bg-gray-50 shadow h-full p-4 flex flex-col">
+              {autoTextNotification && (
+                <div className={`relative mb-2 border ${autoTextNotification.color} text-white px-4 py-2 rounded text-sm text-left`}>
+                  <button
+                    className="absolute top-1 right-2 text-black text-xs font-bold hover:text-gray-200"
+                    style={{ lineHeight: 1 }}
+                    onClick={() => setAutoTextNotification(null)}
+                    aria-label="Schließen"
+                    type="button"
+                  >
+                    ×
+                  </button>
+                  {autoTextNotification.message}
+                </div>
+              )}
               <div className="w-full h-full overflow-y-auto p-2 mb-1 resize-none border border-gray-300 rounded text-left block">
-                {textSummary && !isGenerating
-                  ? <ReactMarkdown>{textSummary}</ReactMarkdown>
-                  : <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
-                }
+                {isGenerating ? (
+                  <span className="text-gray-400">Generiere Text...</span>
+                ) : textSummary ? (
+                  <ReactMarkdown>{textSummary}</ReactMarkdown>
+                ) : (
+                  <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
+                )}
               </div>
               
               <form
