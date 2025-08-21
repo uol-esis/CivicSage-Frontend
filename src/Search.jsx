@@ -524,7 +524,7 @@ export default function Search() {
           className="flex-1" 
         >
           {/* Results Section */}
-          <Panel defaultSize={70} minSize={30} className="flex flex-col h-full">
+          <Panel defaultSize={50} minSize={20} className="flex flex-col h-full">
             <div className="bg-gray-50 shadow p-4 h-full overflow-y-auto">
             <div className="flex flex-row justify-between">
               <div className="pb-2 flex flex-row items-center justify-start relative">
@@ -641,7 +641,7 @@ export default function Search() {
           </Panel>
           <PanelResizeHandle className="w-4 bg-gray-300"/>
           
-          <Panel defaultSize={30} minSize={30} className="flex flex-col">
+          <Panel defaultSize={50} minSize={20} className="flex flex-col">
           {/* Text Area */}
 
             <div className="bg-gray-50 shadow h-full p-4 flex flex-col">
