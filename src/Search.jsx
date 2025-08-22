@@ -30,6 +30,8 @@ export default function Search() {
   const [editingBookmark, setEditingBookmark] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [notification, setNotification] = useState(null);
+  const [showSearchHelp, setShowSearchHelp] = useState(false);
+  const [helpHighlight, setHelpHighlight] = useState(false);
 
 
 
@@ -131,6 +133,17 @@ export default function Search() {
     }
   }, [query, pendingSearch]);
 
+  useEffect(() => {
+    if (isSearching) {
+      setHelpHighlight(true);
+    } else {
+      const timer = setTimeout(() => {
+        setHelpHighlight(false);
+      }, 20000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSearching]);
+
   const handleShowHistory = () => {
     const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
     setSearchHistory(history);
@@ -193,7 +206,6 @@ export default function Search() {
     setEditingName('');
     handleShowBookmarks(); // Refresh the bookmark list
   };
-
 
   const handleShowTextHistory = () => {
     const savedTextHistory = JSON.parse(localStorage.getItem('textHistory')) || [];
@@ -569,6 +581,37 @@ export default function Search() {
                 >
                   Als Lesezeichen speichern
                 </button>
+                <button
+                  onClick={() => {
+                    setShowSearchHelp(prev => !prev);
+                    setHelpHighlight(false);
+                  }}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full border ml-2
+                    ${helpHighlight ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300'}
+                    bg-white
+                    ${results.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  disabled={isGenerating || results.length === 0}
+                >
+                  <span className={`text-xl font-bold ${helpHighlight ? 'text-blue-500' : 'text-gray-500'}`}>?</span>
+                </button>
+                {/* Help Popup */}
+                {showSearchHelp && (
+                  <div className="absolute top-4 right-0 mt-2 mr-12 bg-white border border-gray-300 rounded shadow-lg p-4 z-50 w-64 text-gray-700 text-sm text-left">
+                    <div className="font-bold mb-2">Nicht die Suchergebnisse, die du erwartest?</div>
+                    <div>
+                      - Schau in der Übersicht nach, ob die Quellen vorliegen.<br />
+                      - Falls die Daten kürzlich hinzugefügt wurden, dauert es eventuell noch ein bisschen, bis sie verfügbar sind. Versuch es später erneut.<br />
+                      - Versuche den Prompt als Frage zu formulieren, anstatt nur Stichworte zu verwenden.
+                    </div>
+                    <button
+                      className="mt-3 px-3 py-1 bg-gray-200 rounded text-gray-700 text-xs"
+                      onClick={() => setShowSearchHelp(false)}
+                      onBlur={() => setShowSearchHelp(false)}
+                    >
+                      Schließen
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
