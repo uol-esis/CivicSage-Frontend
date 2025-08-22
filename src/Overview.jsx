@@ -61,6 +61,7 @@ export default function Overview() {
         console.error(error);
         alert('Ups, da ist etwas schief gelaufen. Bitte versuche es später erneut. Alternativ, versuche weniger Websites auf einmal zu aktualisieren oder lösche die Seite manuell und lade sie erneut hoch.');
       } else {
+        showNotification('Die Webseite wird gerade aktualisiert. Es kann eine Weile dauern, bis sie in der Suche verfügbar ist.', 'bg-yellow-500');
         console.log('API called successfully.');
       }
     });
@@ -83,7 +84,7 @@ export default function Overview() {
 
   function showNotification(message, color = 'bg-green-500') {
     setNotification({ message, color });
-    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+    setTimeout(() => setNotification(null), 5000); // Hide after 5 seconds
   }
 
   return (
