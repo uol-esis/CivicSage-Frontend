@@ -42,7 +42,7 @@ export default function Upload() {
         alert(errorMsg);
       } else {
         console.log('API called successfully.');
-        showNotification(`${inputValue} wurde erfolgreich zur Datenbank hinzugefügt.`);
+        showNotification(`${inputValue} wird gerade zur Datenbank hinzugefügt. Es kann eine Weile dauern, bis sie in der Suche verfügbar sind.`, 'bg-yellow-500');
         setInputValue(''); // Clear the input field after successful submission
       }
       setIsWebsiteButtonDisabled(false); // Re-enable the button
@@ -126,7 +126,7 @@ export default function Upload() {
         alert('Es gab einen Fehler beim Lesen der Dateien. Bitte versuche es erneut.');
       } else {
         console.log('Files indexed successfully.');
-        showNotification('Die Dateien wurden erfolgreich zur Datenbank hinzugefügt.');
+        showNotification('Die Dateien werden gerade zur Datenbank hinzugefügt. Es kann eine Weile dauern, bis sie in der Suche verfügbar sind.', 'bg-yellow-500');
       }
       setSelectedFiles([]); // Clear the selected files after successful submission
       setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
@@ -136,7 +136,7 @@ export default function Upload() {
 
   function showNotification(message, color = 'bg-green-500') {
     setNotification({ message, color });
-    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+    setTimeout(() => setNotification(null), 5000); // Hide after 5 seconds
   }
 
   return (

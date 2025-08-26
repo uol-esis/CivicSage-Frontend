@@ -30,6 +30,8 @@ export default function Search() {
   const [editingBookmark, setEditingBookmark] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [notification, setNotification] = useState(null);
+  const [showSearchHelp, setShowSearchHelp] = useState(false);
+  const [helpHighlight, setHelpHighlight] = useState(false);
   const [autoTextNotification, setAutoTextNotification] = useState(null);
 
 
@@ -132,6 +134,17 @@ export default function Search() {
     }
   }, [query, pendingSearch]);
 
+  useEffect(() => {
+    if (isSearching) {
+      setHelpHighlight(true);
+    } else {
+      const timer = setTimeout(() => {
+        setHelpHighlight(false);
+      }, 20000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSearching]);
+
   const handleShowHistory = () => {
     const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
     setSearchHistory(history);
@@ -169,7 +182,7 @@ export default function Search() {
     const bookmarkList = JSON.parse(localStorage.getItem('bookmarks')) || [];
     bookmarkList.push(bookmark);
     localStorage.setItem('bookmarks', JSON.stringify(bookmarkList));
-    showNotification('Bookmark saved successfully!');
+    showNotification('Lesezeichen wurde gespeichert!');
   }
 
   const handleDeleteBookmark = (name) => {
@@ -194,7 +207,6 @@ export default function Search() {
     setEditingName('');
     handleShowBookmarks(); // Refresh the bookmark list
   };
-
 
   const handleShowTextHistory = () => {
     const savedTextHistory = JSON.parse(localStorage.getItem('textHistory')) || [];
@@ -577,6 +589,37 @@ export default function Search() {
                 >
                   Als Lesezeichen speichern
                 </button>
+                <button
+                  onClick={() => {
+                    setShowSearchHelp(prev => !prev);
+                    setHelpHighlight(false);
+                  }}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full border ml-2
+                    ${helpHighlight ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300'}
+                    bg-white
+                    ${results.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  disabled={isGenerating || results.length === 0}
+                >
+                  <span className={`text-xl font-bold ${helpHighlight ? 'text-blue-500' : 'text-gray-500'}`}>?</span>
+                </button>
+                {/* Help Popup */}
+                {showSearchHelp && (
+                  <div className="absolute top-4 right-0 mt-2 mr-12 bg-white border border-gray-300 rounded shadow-lg p-4 z-50 w-64 text-gray-700 text-sm text-left">
+                    <div className="font-bold mb-2">Nicht die Suchergebnisse, die du erwartest?</div>
+                    <div>
+                      - Schau in der Übersicht nach, ob die Quellen vorliegen.<br />
+                      - Falls die Daten kürzlich hinzugefügt wurden, dauert es eventuell noch ein bisschen, bis sie verfügbar sind. Versuch es später erneut.<br />
+                      - Versuche den Prompt als Frage zu formulieren, anstatt nur Stichworte zu verwenden.
+                    </div>
+                    <button
+                      className="mt-3 px-3 py-1 bg-gray-200 rounded text-gray-700 text-xs"
+                      onClick={() => setShowSearchHelp(false)}
+                      onBlur={() => setShowSearchHelp(false)}
+                    >
+                      Schließen
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -668,12 +711,69 @@ export default function Search() {
                   <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
                 )}
               </div>
-              
+                            
+              <div className="flex flex-row flex-wrap mb-1 gap-1">
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!')}
+                  type="button"
+                >
+                  Zusammenfassen
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!')}
+                  type="button"
+                >
+                  Stichpunkte
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!')}
+                  type="button"
+                >
+                  Erklärung
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!')}
+                  type="button"
+                >
+                  Kürzen
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Übersetze die ausgewählten Ergebnisse ins Englische!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Übersetze die ausgewählten Ergebnisse ins Englische!')}
+                  type="button"
+                >
+                  Übersetzen
+                </button>
+              </div>
+
               <form
                 className="flex flex-row items-center"
                 onSubmit={(e) => { e.preventDefault(); handleGenerate(); }}
               >
-                
                 <textarea
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
