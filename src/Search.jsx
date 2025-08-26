@@ -33,6 +33,7 @@ export default function Search() {
   const [showSearchHelp, setShowSearchHelp] = useState(false);
   const [helpHighlight, setHelpHighlight] = useState(false);
   const [autoTextNotification, setAutoTextNotification] = useState(null);
+  const [showPromptButtons, setShowPromptButtons] = useState(true);
 
 
 
@@ -135,15 +136,18 @@ export default function Search() {
   }, [query, pendingSearch]);
 
   useEffect(() => {
-    if (isSearching) {
+    if (!isSearching) {
       setHelpHighlight(true);
-    } else {
       const timer = setTimeout(() => {
         setHelpHighlight(false);
       }, 20000);
       return () => clearTimeout(timer);
-    }
+    } 
   }, [isSearching]);
+
+  useEffect(() => {
+      setHelpHighlight(false);
+  }, []);
 
   const handleShowHistory = () => {
     const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -612,6 +616,8 @@ export default function Search() {
                 >
                   Als Lesezeichen speichern
                 </button>
+
+                {/* Help Button and Popup */}
                 <button
                   onClick={() => {
                     setShowSearchHelp(prev => !prev);
@@ -625,7 +631,6 @@ export default function Search() {
                 >
                   <span className={`text-xl font-bold outline-none ${helpHighlight ? 'text-blue-500' : 'text-gray-500'}`}>?</span>
                 </button>
-                {/* Help Popup */}
                 {showSearchHelp && (
                   <div className="absolute top-4 right-0 mt-2 mr-12 bg-white border border-gray-300 rounded shadow-lg p-4 z-50 w-64 text-gray-700 text-sm text-left outline-none">
                     <div className="font-bold mb-2">Nicht die Suchergebnisse, die du erwartest?</div>
@@ -734,63 +739,76 @@ export default function Search() {
                   <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
                 )}
               </div>
-                            
-              <div className="flex flex-row flex-wrap mb-1 gap-1">
-                <button
-                  className={`px-3 py-1 rounded-full font-semibold border transition
-                    ${prompt === 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!'
-                      ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
-                  `}
-                  onClick={() => setPrompt('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!')}
-                  type="button"
-                >
-                  Zusammenfassen
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-full font-semibold border transition
-                    ${prompt === 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!'
-                      ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
-                  `}
-                  onClick={() => setPrompt('Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!')}
-                  type="button"
-                >
-                  Stichpunkte
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-full font-semibold border transition
-                    ${prompt === 'Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!'
-                      ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
-                  `}
-                  onClick={() => setPrompt('Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!')}
-                  type="button"
-                >
-                  Erklärung
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-full font-semibold border transition
-                    ${prompt === 'Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!'
-                      ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
-                  `}
-                  onClick={() => setPrompt('Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!')}
-                  type="button"
-                >
-                  Kürzen
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-full font-semibold border transition
-                    ${prompt === 'Übersetze die ausgewählten Ergebnisse ins Englische!'
-                      ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
-                  `}
-                  onClick={() => setPrompt('Übersetze die ausgewählten Ergebnisse ins Englische!')}
-                  type="button"
-                >
-                  Übersetzen
-                </button>
+              
+              <div className="flex flex-row items-center justify-between mb-1">
+                {showPromptButtons && (
+                  <div className="flex flex-row flex-wrap mb-1 gap-1">
+                    <button
+                      className={`px-3 py-1 rounded-full font-semibold border transition
+                        ${prompt === 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!'
+                          ? 'bg-blue-100 text-blue-700 border-blue-300'
+                          : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                      `}
+                      onClick={() => setPrompt('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!')}
+                      type="button"
+                    >
+                      Zusammenfassen
+                    </button>
+                    <button
+                      className={`px-3 py-1 rounded-full font-semibold border transition
+                        ${prompt === 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!'
+                          ? 'bg-blue-100 text-blue-700 border-blue-300'
+                          : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                      `}
+                      onClick={() => setPrompt('Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!')}
+                      type="button"
+                    >
+                      Stichpunkte
+                    </button>
+                    <button
+                      className={`px-3 py-1 rounded-full font-semibold border transition
+                        ${prompt === 'Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!'
+                          ? 'bg-blue-100 text-blue-700 border-blue-300'
+                          : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                      `}
+                      onClick={() => setPrompt('Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!')}
+                      type="button"
+                    >
+                      Erklärung
+                    </button>
+                    <button
+                      className={`px-3 py-1 rounded-full font-semibold border transition
+                        ${prompt === 'Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!'
+                          ? 'bg-blue-100 text-blue-700 border-blue-300'
+                          : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                      `}
+                      onClick={() => setPrompt('Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!')}
+                      type="button"
+                    >
+                      Kürzen
+                    </button>
+                    <button
+                      className={`px-3 py-1 rounded-full font-semibold border transition
+                        ${prompt === 'Übersetze die ausgewählten Ergebnisse ins Englische!'
+                          ? 'bg-blue-100 text-blue-700 border-blue-300'
+                          : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                      `}
+                      onClick={() => setPrompt('Übersetze die ausgewählten Ergebnisse ins Englische!')}
+                      type="button"
+                    >
+                      Übersetzen
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-row justify-end flex-1">
+                  <button
+                    className="px-2 text-gray-700 text-xs"
+                    onClick={() => setShowPromptButtons(prev => !prev)}
+                    type="button"
+                  >
+                    {showPromptButtons ? '▼' : '▲'}
+                  </button>
+                </div>
               </div>
 
               <form
