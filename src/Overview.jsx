@@ -61,29 +61,48 @@ export default function Overview() {
         console.error(error);
         alert('Ups, da ist etwas schief gelaufen. Bitte versuche es später erneut. Alternativ, versuche weniger Websites auf einmal zu aktualisieren oder lösche die Seite manuell und lade sie erneut hoch.');
       } else {
+        showNotification('Die Webseite wird gerade aktualisiert. Es kann eine Weile dauern, bis sie in der Suche verfügbar ist.', 'bg-yellow-500');
         console.log('API called successfully.');
       }
     });
   }
 
 
-  const filteredFiles = content.files?.filter(
-    file =>
-      (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
-      (file.title && file.title.toLowerCase().includes(search.toLowerCase())) ||
-      (file.uploadDate && file.uploadDate.toLowerCase().includes(search.toLowerCase()))
-  ) || [];
+const filteredFiles = content.files?.filter(
+  file =>
+    (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
+    (file.title && file.title.toLowerCase().includes(search.toLowerCase())) ||
+    (file.uploadDate &&
+      (new Date(file.uploadDate).toLocaleString('de-DE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).toLowerCase().includes(search.toLowerCase())
+      )
+    )
+) || [];
 
-  const filteredWebsites = content.websites?.filter(
-    website =>
-      (website.title && website.title.toLowerCase().includes(search.toLowerCase())) ||
-      (website.url && website.url.toLowerCase().includes(search.toLowerCase())) ||
-      (website.uploadDate && website.uploadDate.toLowerCase().includes(search.toLowerCase()))
-  ) || [];
+const filteredWebsites = content.websites?.filter(
+  website =>
+    (website.title && website.title.toLowerCase().includes(search.toLowerCase())) ||
+    (website.url && website.url.toLowerCase().includes(search.toLowerCase())) ||
+    (website.uploadDate &&
+      (new Date(website.uploadDate).toLocaleString('de-DE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).toLowerCase().includes(search.toLowerCase())
+      )
+    )
+) || [];
 
   function showNotification(message, color = 'bg-green-500') {
     setNotification({ message, color });
-    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+    setTimeout(() => setNotification(null), 5000); // Hide after 5 seconds
   }
 
   return (
@@ -142,7 +161,7 @@ export default function Overview() {
               <button
                 className="flex-shrink-0 ml-4 text-white hover:underline"
               >
-                Update
+                Aktualisieren
               </button>
               <button
                 className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
