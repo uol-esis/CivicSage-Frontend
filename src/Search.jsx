@@ -298,7 +298,7 @@ export default function Search() {
   useEffect(() => {
     if (results.length > 0) {
       handleGenerate();
-      setAutoTextNotification({ message: <>Diese Zusammenfassung wird automatisch generiert. Für <b>bessere</b> Antworten, versuche die Ergebnisse links manuell auszuwählen oder den Prompt anzupassen!</>, color: 'bg-yellow-500' });
+      setAutoTextNotification({ message: <>Diese Zusammenfassung wird automatisch generiert. Für <b>bessere</b> Antworten, versuche die Ergebnisse links manuell auszuwählen oder den Prompt anzupassen!</>, color: 'bg-yellow-600' });
     }
   }, [results]);
 
@@ -719,7 +719,7 @@ export default function Search() {
               {autoTextNotification && (
                 <div className={`relative mb-2 border ${autoTextNotification.color} text-white px-4 py-2 rounded text-sm text-left`}>
                   <button
-                    className="absolute top-1 right-2 text-black text-xs font-bold hover:text-gray-200"
+                    className="absolute top-1 right-2 text-white text-xs font-bold hover:text-gray-200"
                     style={{ lineHeight: 1 }}
                     onClick={() => setAutoTextNotification(null)}
                     aria-label="Schließen"
@@ -865,6 +865,7 @@ export default function Search() {
                   <button
                     type="submit"
                     className="bg-blue-500 text-white px-4 py-2 h-[3.25rem] rounded-r cursor-pointer"
+                    onClick={() => setAutoTextNotification(null)}
                     disabled={isGenerating}
                   >
                     {isGenerating ? (
