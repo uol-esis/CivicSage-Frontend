@@ -182,7 +182,7 @@ export default function Search() {
     const bookmarkList = JSON.parse(localStorage.getItem('bookmarks')) || [];
     bookmarkList.push(bookmark);
     localStorage.setItem('bookmarks', JSON.stringify(bookmarkList));
-    showNotification('Bookmark saved successfully!');
+    showNotification('Lesezeichen wurde gespeichert!');
   }
 
   const handleDeleteBookmark = (name) => {
@@ -711,12 +711,69 @@ export default function Search() {
                   <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
                 )}
               </div>
-              
+                            
+              <div className="flex flex-row flex-wrap mb-1 gap-1">
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!')}
+                  type="button"
+                >
+                  Zusammenfassen
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!')}
+                  type="button"
+                >
+                  Stichpunkte
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!')}
+                  type="button"
+                >
+                  Erklärung
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!')}
+                  type="button"
+                >
+                  Kürzen
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-full font-semibold border transition
+                    ${prompt === 'Übersetze die ausgewählten Ergebnisse ins Englische!'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => setPrompt('Übersetze die ausgewählten Ergebnisse ins Englische!')}
+                  type="button"
+                >
+                  Übersetzen
+                </button>
+              </div>
+
               <form
                 className="flex flex-row items-center"
                 onSubmit={(e) => { e.preventDefault(); handleGenerate(); }}
               >
-                
                 <textarea
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
