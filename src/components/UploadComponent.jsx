@@ -76,7 +76,7 @@ export default function UploadComponent({setFiles, setValid, reset}) {
           <button
             type="button"
             onClick={() => fileInputRef.current.click()}
-            className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {selectedFiles.length === 1 ? (
               <>
@@ -136,7 +136,7 @@ export default function UploadComponent({setFiles, setValid, reset}) {
         <button
           type="button"
           onClick={() => directoryInputRef.current.click()}
-          className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {selectedFiles.length > 1 ? (
             <>

@@ -155,6 +155,15 @@ export default function Search() {
     setPendingSearch(true);
   };
 
+  const handleDeleteHistoryItem = (name) => {
+    // Remove from history
+    const updatedHistory = searchHistory.filter(item => item !== name);
+    setSearchHistory(updatedHistory);
+
+    // Remove from localStorage
+    localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
+  };
+
   const handleShowBookmarks = () => {
     const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
     setBookmarks(bookmarks);
@@ -353,7 +362,7 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white px-2 py-2 rounded cursor-pointer"
+              className="bg-gray-500 text-white px-2 py-2 rounded cursor-pointer outline-none"
               onClick={handleShowHistory}
               title="Suchverlauf"
             >
@@ -363,20 +372,34 @@ export default function Search() {
             </MenuButton>
 
             {/* Dropdown Content */}
-            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64">
+            <MenuItems className="absolute mt-2 bg-white border border-grey-300 outline-none rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64">
               <h3 className="text-lg font-bold mb-2">Suchverlauf:</h3>
               {searchHistory.length > 0 ? (
-                <ul className="list-disc pl-5">
+                <ul className="list-disc pl-2">
                   {searchHistory.map((item, index) => (
                     <MenuItem key={index}>
                       {({ active }) => (
                         <li
-                          className={`${
+                          className={`flex items-center justify-between ${
                             active ? 'bg-gray-100' : ''
                           } text-gray-700 cursor-pointer`}
                           onClick={() => handleHistoryItemClick(item)}
                         >
-                          {item}
+                          <div className="flex-1 min-w-0 flex flex-row">
+                            {item}
+                          </div>
+                          <button
+                            className="flex-shrink-0 ml-2 text-red-500 hover:underline"
+                            onClick={e => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleDeleteHistoryItem(item)
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         </li>
                       )}
                     </MenuItem>
@@ -391,7 +414,7 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer"
+              className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer outline-none"
               onClick={handleShowBookmarks}
               title="Lesezeichen"
             >
@@ -401,10 +424,10 @@ export default function Search() {
             </MenuButton>
 
             {/* Dropdown Content */}
-            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64">
+            <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64 outline-none">
               <h3 className="text-lg font-bold mb-2">Lesezeichen:</h3>
               {bookmarks.length > 0 ? (
-                <ul className="list-disc pl-5">
+                <ul className="list-disc pl-2">
                   {bookmarks.map((item, index) => (
                     <MenuItem key={index}>
                       {({ active }) => (
@@ -426,7 +449,7 @@ export default function Search() {
                                       handleEditBookmarkSubmit(e, item.name);
                                       setEditingBookmark(null);
                                     }}
-                                    className="border px-1 py-0.5 rounded w-full"
+                                    className="border px-1 py-0.5 rounded w-full outline-none focus:ring-2 ring-blue-500"
                                     onKeyDown={e => {
                                       e.stopPropagation();
                                       if (e.key === 'Escape') setEditingBookmark(null);
@@ -481,7 +504,7 @@ export default function Search() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Suchen..."
-            className="border border-gray-300 px-4 py-2 ml-2 w-full"
+            className="border border-gray-300 px-4 py-2 ml-2 w-full outline-none focus:ring-2 ring-blue-500"
           />
           <button
             type="submit"
@@ -502,12 +525,12 @@ export default function Search() {
             >
               ▼
             </MenuButton>
-            <MenuItems className="absolute right-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-72 z-50">
+            <MenuItems className="absolute right-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-72 z-50 outline-none">
               <div>
                 <div className="mb-2">
                   <label className="block text-sm font-medium text-gray-700">Titel</label>
                   <input
-                    className="border border-gray-300 rounded px-2 py-1 w-full"
+                    className="border border-gray-300 rounded px-2 py-1 w-full outline-none focus:ring-2 ring-blue-500"
                     value={filterTitle}
                     onChange={e => setFilterTitle(e.target.value)}
                     disabled={filterUrl.trim() !== ''}
@@ -516,7 +539,7 @@ export default function Search() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Webseite</label>
                   <input
-                    className="border border-gray-300 rounded px-2 pt-1 w-full"
+                    className="border border-gray-300 rounded px-2 pt-1 w-full outline-none focus:ring-2 ring-blue-500"
                     value={filterUrl}
                     onChange={e => setFilterUrl(e.target.value)}
                     disabled={filterTitle.trim() !== ''}
@@ -584,7 +607,7 @@ export default function Search() {
               <div className="pb-2 flex flex-row items-center justify-end">
                 <button
                   onClick={handleSaveBookmark}
-                  className={`px-2 py-2 rounded text-white ml-16 ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
+                  className={`px-2 py-2 rounded text-white ml-16 outline-none ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
                   disabled={isGenerating || results.length === 0}
                 >
                   Als Lesezeichen speichern
@@ -598,13 +621,13 @@ export default function Search() {
                     ${helpHighlight ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300'}
                     bg-white
                     ${results.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                  disabled={isGenerating || results.length === 0}
+                  disabled={isSearching || results.length === 0}
                 >
-                  <span className={`text-xl font-bold ${helpHighlight ? 'text-blue-500' : 'text-gray-500'}`}>?</span>
+                  <span className={`text-xl font-bold outline-none ${helpHighlight ? 'text-blue-500' : 'text-gray-500'}`}>?</span>
                 </button>
                 {/* Help Popup */}
                 {showSearchHelp && (
-                  <div className="absolute top-4 right-0 mt-2 mr-12 bg-white border border-gray-300 rounded shadow-lg p-4 z-50 w-64 text-gray-700 text-sm text-left">
+                  <div className="absolute top-4 right-0 mt-2 mr-12 bg-white border border-gray-300 rounded shadow-lg p-4 z-50 w-64 text-gray-700 text-sm text-left outline-none">
                     <div className="font-bold mb-2">Nicht die Suchergebnisse, die du erwartest?</div>
                     <div>
                       - Schau in der Übersicht nach, ob die Quellen vorliegen.<br />
@@ -612,7 +635,7 @@ export default function Search() {
                       - Versuche den Prompt als Frage zu formulieren, anstatt nur Stichworte zu verwenden.
                     </div>
                     <button
-                      className="mt-3 px-3 py-1 bg-gray-200 rounded text-gray-700 text-xs"
+                      className="mt-3 px-3 py-1 bg-gray-200 rounded text-gray-700 text-xs outline-none"
                       onClick={() => setShowSearchHelp(false)}
                       onBlur={() => setShowSearchHelp(false)}
                     >
@@ -674,7 +697,7 @@ export default function Search() {
             })}
             <button
               onClick={() => setResultPage(resultPage + 1)}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer outline-none"
               hidden={results.length === 0}
               disabled={isGenerating || isSearching}
             >
@@ -778,7 +801,7 @@ export default function Search() {
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
                   placeholder="Generiere einen Text basierend auf den ausgewählten Ergebnissen!"
-                  className="border border-gray-300 px-4 py-2 w-full h-[6.5rem] rounded-l resize-none overflow-y-auto"
+                  className="border border-gray-300 px-4 py-2 w-full h-[6.5rem] rounded-l resize-none overflow-y-auto outline-none focus:ring-2 ring-blue-500"
                   rows={1}
                 />
                 <div className="flex flex-col">
@@ -786,7 +809,7 @@ export default function Search() {
                   <Menu as="div" className="relative w-full inline-block text-left">
                     {/* Dropdown Button */}
                     <MenuButton
-                      className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center"
+                      className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center outline-none"
                       onClick={handleShowTextHistory}
                       title="Textverlauf"
                     >
@@ -796,7 +819,7 @@ export default function Search() {
                     </MenuButton>
 
                     {/* Dropdown Content */}
-                    <MenuItems className="absolute right-0 w-[calc(30vw-4rem)] bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4">
+                    <MenuItems className="absolute right-0 w-[calc(30vw-4rem)] bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4 outline-none">
 
                       <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
                       {textHistory.length > 0 ? (

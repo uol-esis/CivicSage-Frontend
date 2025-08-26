@@ -165,7 +165,7 @@ export default function Upload() {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="www.beispiel.de..."
-          className="border border-gray-300 rounded px-4 py-2 w-full mt-2"
+          className="border border-gray-300 rounded px-4 py-2 w-full mt-2 outline-none focus:ring-2 ring-blue-500"
         />
         <button
           onClick={handleConfirmWebsite}

@@ -127,7 +127,7 @@ const filteredWebsites = content.websites?.filter(
       <input
         type="text"
         placeholder="Suche nach Inhalten..."
-        className="justify-self-end p-2 border rounded w-64"
+        className="justify-self-end p-2 border rounded w-64 outline-none focus:ring-2 ring-blue-500"
         onChange={(e) => {setSearch(e.target.value)}}
       />
       </div>
