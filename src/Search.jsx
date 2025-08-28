@@ -368,6 +368,7 @@ export default function Search() {
             <MenuButton
               className="bg-gray-500 text-white px-2 py-2 rounded cursor-pointer outline-none"
               onClick={handleShowHistory}
+              aria-label="Suchverlauf"
               title="Suchverlauf"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -394,6 +395,7 @@ export default function Search() {
                           </div>
                           <button
                             className="flex-shrink-0 ml-2 text-red-500 hover:underline"
+                            aria-label="Löschen"
                             onClick={e => {
                               e.stopPropagation();
                               e.preventDefault();
@@ -420,6 +422,7 @@ export default function Search() {
             <MenuButton
               className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer outline-none"
               onClick={handleShowBookmarks}
+              aria-label="Lesezeichen"
               title="Lesezeichen"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -448,6 +451,7 @@ export default function Search() {
                                     type="text"
                                     value={editingName}
                                     autoFocus
+                                    aria-label="Lesezeichen Name bearbeiten"
                                     onChange={e => setEditingName(e.target.value)}
                                     onBlur={e => {
                                       handleEditBookmarkSubmit(e, item.name);
@@ -470,6 +474,7 @@ export default function Search() {
                             </div>
                             <button
                               className="flex-shrink-0 ml-2 text-blue-500 hover:underline"
+                              aria-label="Lesezeichen umbenennen"
                               onClick={e => {
                                 e.stopPropagation();
                                 e.preventDefault();
@@ -483,6 +488,7 @@ export default function Search() {
                             </button>
                             <button
                               className="flex-shrink-0 ml-2 text-red-500 hover:underline"
+                              aria-label="Lesezeichen löschen"
                               onClick={e => {
                                 handleDeleteBookmark(item.name)
                               }}
@@ -509,11 +515,13 @@ export default function Search() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Suchen..."
             className="border border-gray-300 px-4 py-2 ml-2 w-full outline-none focus:ring-2 ring-blue-500"
+            aria-label="Suchfeld"
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white pl-4 py-2 cursor-pointer"
+            className="bg-blue-700 text-white pl-4 py-2 cursor-pointer"
             disabled={isSearching}
+            aria-label="Suchen"
           >
             {isSearching ? (
               <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
@@ -524,8 +532,9 @@ export default function Search() {
           {/* Dropdown with search filter */}
           <Menu as="div" className="relative inline-block text-left">
             <MenuButton
-              className="bg-blue-500 text-white px-2 py-2 rounded-r cursor-pointer"
+              className="bg-blue-700 text-white px-2 py-2 rounded-r cursor-pointer"
               title="Filter"
+              aria-label="Filter"
             >
               ▼
             </MenuButton>
@@ -538,6 +547,7 @@ export default function Search() {
                     value={filterTitle}
                     onChange={e => setFilterTitle(e.target.value)}
                     disabled={filterUrl.trim() !== ''}
+                    aria-label="Titel Filter"
                   />
                 </div>
                 <div>
@@ -547,8 +557,8 @@ export default function Search() {
                     value={filterUrl}
                     onChange={e => setFilterUrl(e.target.value)}
                     disabled={filterTitle.trim() !== ''}
-                  >
-                  </input>
+                    aria-label="Webseite Filter"
+                  />
                 </div>
               </div>
             </MenuItems>
@@ -588,6 +598,8 @@ export default function Search() {
                   checked={allChecked ?? true}
                   onChange={() => handleCheckAllChange()}
                   className="absolute top-2 left-2 border bg-white w-5 h-5 rounded cursor-pointer"  
+                  title='Alle Ergebnisse auswählen/abwählen'
+                  aria-label={allChecked ? "Alle Ergebnisse abwählen" : "Alle Ergebnisse auswählen"}
                 />
                 <div
                   onClick={() => handlePinAllToggle()}
@@ -628,6 +640,7 @@ export default function Search() {
                     bg-white
                     ${results.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   disabled={isSearching || results.length === 0}
+                  aria-label='Hilfe zu Suchergebnissen'
                 >
                   <span className={`text-xl font-bold outline-none ${helpHighlight ? 'text-blue-500' : 'text-gray-500'}`}>?</span>
                 </button>
@@ -658,7 +671,9 @@ export default function Search() {
                     type="checkbox"
                     checked={resultsIsChecked[index] ?? true}
                     onChange={() => handleCheckboxChange(index)}
-                    className="absolute top-2 left-2 border bg-white w-5 h-5 rounded cursor-pointer"  
+                    className="absolute top-2 left-2 border bg-white w-5 h-5 rounded cursor-pointer"
+                    title={resultsIsChecked[index] ? `Ergebnis abwählen` : `Ergebnis auswählen`}
+                    aria-label={resultsIsChecked[index] ? `Ergebnis auswählen` : `Ergebnis abwählen`}
                   />
                   <div
                     onClick={() => handlePinToggle(index)}
@@ -705,6 +720,8 @@ export default function Search() {
               className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer outline-none"
               hidden={results.length === 0}
               disabled={isGenerating || isSearching}
+              aria-label='Mehr Ergebnisse laden'
+              title='Mehr Ergebnisse laden'
             >
               +
             </button>
@@ -805,6 +822,7 @@ export default function Search() {
                     className="px-2 text-gray-700 text-xs"
                     onClick={() => setShowPromptButtons(prev => !prev)}
                     type="button"
+                    aria-label={showPromptButtons ? 'Vordefinierte Prompts ausblenden' : 'Vordefinierte Prompts anzeigen'}
                   >
                     {showPromptButtons ? '▼' : '▲'}
                   </button>
@@ -821,6 +839,7 @@ export default function Search() {
                   placeholder="Generiere einen Text basierend auf den ausgewählten Ergebnissen!"
                   className="border border-gray-300 px-4 py-2 w-full h-[6.5rem] rounded-l resize-none overflow-y-auto outline-none focus:ring-2 ring-blue-500"
                   rows={1}
+                  aria-label="Prompt für die Textgenerierung"
                 />
                 <div className="flex flex-col">
                   {/* Text History */}
@@ -830,6 +849,7 @@ export default function Search() {
                       className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center outline-none"
                       onClick={handleShowTextHistory}
                       title="Textverlauf"
+                      aria-label="Textverlauf"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -864,9 +884,10 @@ export default function Search() {
                   </Menu>
                   <button
                     type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 h-[3.25rem] rounded-r cursor-pointer"
+                    className="bg-blue-700 text-white px-4 py-2 h-[3.25rem] rounded-r cursor-pointer"
                     onClick={() => setAutoTextNotification(null)}
                     disabled={isGenerating}
+                    aria-label="Text generieren"
                   >
                     {isGenerating ? (
                       <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
