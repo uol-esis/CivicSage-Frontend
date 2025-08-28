@@ -46,6 +46,8 @@ export default function Feedback(){
 
     return(
         <div className='flex items-center justify-center mt-4'>
+            <h1 className="sr-only">CivicSage – Feedbackseite</h1>
+
             <div className='w-1/2 flex flex-col items-center gap-4'>
                 <p className='text-lg font-semibold'>Feedback</p>
                 <p>

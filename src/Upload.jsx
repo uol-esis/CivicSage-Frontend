@@ -141,6 +141,7 @@ export default function Upload() {
 
   return (
   <div className="h-screen flex-1 flex-col overflow-y-auto">
+    <h1 className="sr-only">CivicSage – Hochladeseite</h1>
     {notification && (
       <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
         {notification.message}
@@ -197,6 +198,7 @@ export default function Upload() {
           handleUploadFiles();
         }}
         className="flex flex-col flex-1 justify-between"
+        label='Datei Upload Bereich'
       >
         <UploadComponent setFiles={setSelectedFiles} setValid={setIsValidFile} reset={resetUpload} />  
         <button
@@ -211,7 +213,7 @@ export default function Upload() {
           )}
         </button>
       </form>
-</div>
+    </div>
 
   </div>
 );}

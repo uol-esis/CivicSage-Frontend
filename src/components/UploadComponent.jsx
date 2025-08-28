@@ -76,6 +76,7 @@ export default function UploadComponent({setFiles, setValid, reset}) {
           <button
             type="button"
             onClick={() => fileInputRef.current.click()}
+            aria-label="Datei auswählen"
             className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {selectedFiles.length === 1 ? (
@@ -124,7 +125,9 @@ export default function UploadComponent({setFiles, setValid, reset}) {
               </>
             )}
           </button>
+          <label htmlFor="file-upload" className="sr-only">Datei auswählen</label>
           <input 
+            id="file-upload"
             type="file" 
             ref={fileInputRef} 
             onChange={handleFileChange} 
@@ -137,6 +140,7 @@ export default function UploadComponent({setFiles, setValid, reset}) {
           type="button"
           onClick={() => directoryInputRef.current.click()}
           className="relative flex-1 h-full rounded-lg bg-white border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Ordner auswählen"
         >
           {selectedFiles.length > 1 ? (
             <>
@@ -184,7 +188,9 @@ export default function UploadComponent({setFiles, setValid, reset}) {
             </>
           )}
         </button>
+        <label htmlFor="directory-upload" className="sr-only">Ordner auswählen</label>
         <input 
+          id="directory-upload"
           type="file" 
           ref={directoryInputRef} 
           onChange={handleFileChange} 

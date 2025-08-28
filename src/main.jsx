@@ -7,7 +7,7 @@ import Sidebar from './Sidebar.jsx'
 createRoot(document.getElementById('root')).render(
   <div className="min-h-screen flex flex-col">
     <Sidebar />
-    <main className="flex-grow height-[100vh] overflow-hidden ml-12">
+    <main id="main-content" tabIndex={-1} className="flex-grow height-[100vh] overflow-hidden ml-12">
       <App />
     </main>
   </div>

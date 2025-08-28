@@ -107,6 +107,7 @@ const filteredWebsites = content.websites?.filter(
 
   return (
   <div className="flex flex-col justify-between m-4 p-4 h-full bg-white shadow rounded-[10px]">
+    <h1 className="sr-only">CivicSage – Übersichtsseite</h1>
     {notification && (
       <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
         {notification.message}
@@ -163,11 +164,13 @@ const filteredWebsites = content.websites?.filter(
                   : 'Unbekannt'}
                 </span>
               </div>
-              <button
-                className="flex-shrink-0 ml-4 text-white hover:underline"
+              <span
+                className="flex-shrink-0 ml-4 opacity-0"
+                tabIndex={-1}
+                aria-hidden="true"
               >
                 Aktualisieren
-              </button>
+              </span>
               <button
                 className="flex-shrink-0 ml-4 text-blue-700 hover:underline"
                 onClick={() => handleDeleteEntry(item.fileId)}
@@ -182,7 +185,9 @@ const filteredWebsites = content.websites?.filter(
               className="relative flex items-center mb-2 p-2 border-b"
             >
               <div className="flex-1 min-w-0 flex flex-row">
-                <span className="font-semibold basis-[40%] min-w-0 pr-4 truncate block whitespace-nowrap overflow-x-auto text-left">
+                <span className="font-semibold basis-[40%] min-w-0 pr-4 truncate block whitespace-nowrap overflow-x-auto text-left"
+                  tabIndex={0} 
+                >  
                   {item.title}
                 </span>
                 <a
@@ -190,6 +195,7 @@ const filteredWebsites = content.websites?.filter(
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  tabIndex={0}
                 >
                   {item.url}
                 </a>
