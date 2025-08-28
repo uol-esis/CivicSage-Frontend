@@ -34,7 +34,7 @@ export default function Search() {
   const [helpHighlight, setHelpHighlight] = useState(false);
   const [autoTextNotification, setAutoTextNotification] = useState(null);
   const [showPromptButtons, setShowPromptButtons] = useState(true);
-
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -351,6 +351,7 @@ export default function Search() {
 
   return (
     <div className="h-screen flex flex-col">
+      <h1 className="sr-only">CivicSage – Suchseite</h1>
       {notification && (
         <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
           {notification.message}
@@ -366,7 +367,7 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white px-2 py-2 rounded cursor-pointer outline-none"
+              className="bg-gray-500 text-white px-2 py-2 rounded cursor-pointer"
               onClick={handleShowHistory}
               aria-label="Suchverlauf"
               title="Suchverlauf"
@@ -420,7 +421,7 @@ export default function Search() {
           <Menu as="div" className="relative inline-block text-left">
             {/* Dropdown Button */}
             <MenuButton
-              className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer outline-none"
+              className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer"
               onClick={handleShowBookmarks}
               aria-label="Lesezeichen"
               title="Lesezeichen"
@@ -530,39 +531,44 @@ export default function Search() {
             )}
           </button>
           {/* Dropdown with search filter */}
-          <Menu as="div" className="relative inline-block text-left">
-            <MenuButton
+          <div className="relative inline-block text-left">
+            <button
               className="bg-blue-700 text-white px-2 py-2 rounded-r cursor-pointer"
               title="Filter"
               aria-label="Filter"
+              onClick={() => { setShowFilterMenu(prev => !prev); }}
             >
               ▼
-            </MenuButton>
-            <MenuItems className="absolute right-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-72 z-50 outline-none">
-              <div>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Titel</label>
-                  <input
-                    className="border border-gray-300 rounded px-2 py-1 w-full outline-none focus:ring-2 ring-blue-500"
-                    value={filterTitle}
-                    onChange={e => setFilterTitle(e.target.value)}
-                    disabled={filterUrl.trim() !== ''}
-                    aria-label="Titel Filter"
-                  />
-                </div>
+            </button>
+            {showFilterMenu && (
+              <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-72 z-50 outline-none">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Webseite</label>
-                  <input
-                    className="border border-gray-300 rounded px-2 pt-1 w-full outline-none focus:ring-2 ring-blue-500"
-                    value={filterUrl}
-                    onChange={e => setFilterUrl(e.target.value)}
-                    disabled={filterTitle.trim() !== ''}
-                    aria-label="Webseite Filter"
-                  />
+                  <div className="mb-2">
+                    <label className="block text-sm font-medium text-gray-700">Titel</label>
+                    <input
+                      className="border border-gray-300 rounded px-2 py-1 w-full outline-none focus:ring-2 ring-blue-500"
+                      value={filterTitle}
+                      onChange={e => setFilterTitle(e.target.value)}
+                      disabled={filterUrl.trim() !== ''}
+                      aria-label="Titel Filter"
+                      tabIndex={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Webseite</label>
+                    <input
+                      className="border border-gray-300 rounded px-2 pt-1 w-full outline-none focus:ring-2 ring-blue-500"
+                      value={filterUrl}
+                      onChange={e => setFilterUrl(e.target.value)}
+                      disabled={filterTitle.trim() !== ''}
+                      aria-label="Webseite Filter"
+                      tabIndex={0}
+                    />
+                  </div>
                 </div>
               </div>
-            </MenuItems>
-          </Menu>
+            )}
+          </div>
         </form>
       </div>
 
@@ -571,6 +577,7 @@ export default function Search() {
         <PanelGroup 
           direction="horizontal"
           className="flex-1" 
+          tabIndex={-1}
         >
           {/* Results Section */}
           <Panel defaultSize={50} minSize={20} className="flex flex-col h-full">
@@ -597,13 +604,21 @@ export default function Search() {
                   type="checkbox"
                   checked={allChecked ?? true}
                   onChange={() => handleCheckAllChange()}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCheckAllChange();
+                    }
+                  }}
                   className="absolute top-2 left-2 border bg-white w-5 h-5 rounded cursor-pointer"  
                   title='Alle Ergebnisse auswählen/abwählen'
                   aria-label={allChecked ? "Alle Ergebnisse abwählen" : "Alle Ergebnisse auswählen"}
                 />
-                <div
+                <button
                   onClick={() => handlePinAllToggle()}
                   className={`absolute top-2 left-9 cursor-pointer`}
+                  aria-label={allPinned ? "Alle Pins entfernen" : "Alle ausgewählten Artikel anpinnen"}
+                  tabIndex={0}
                 >
                   {allPinned ? (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -618,12 +633,12 @@ export default function Search() {
                       <path d="M1.4694 21.4697C1.17666 21.7627 1.1769 22.2376 1.46994 22.5304C1.76298 22.8231 2.23786 22.8229 2.5306 22.5298L1.4694 21.4697ZM7.18383 17.8719C7.47657 17.5788 7.47633 17.1039 7.18329 16.8112C6.89024 16.5185 6.41537 16.5187 6.12263 16.8117L7.18383 17.8719ZM2.5306 22.5298L7.18383 17.8719L6.12263 16.8117L1.4694 21.4697L2.5306 22.5298Z" fill="#1C274C"/>
                     </svg>
                   )}
-                </div>
+                </button>
               </div>
               <div className="pb-2 flex flex-row items-center justify-end">
                 <button
                   onClick={handleSaveBookmark}
-                  className={`px-2 py-2 rounded text-white ml-16 outline-none ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
+                  className={`px-2 py-2 rounded text-white ml-16 ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
                   disabled={isGenerating || results.length === 0}
                 >
                   Als Lesezeichen speichern
@@ -645,7 +660,8 @@ export default function Search() {
                   <span className={`text-xl font-bold outline-none ${helpHighlight ? 'text-blue-500' : 'text-gray-500'}`}>?</span>
                 </button>
                 {showSearchHelp && (
-                  <div className="absolute top-4 right-0 mt-2 mr-12 bg-white border border-gray-300 rounded shadow-lg p-4 z-50 w-64 text-gray-700 text-sm text-left outline-none">
+                  <div className="absolute top-4 right-0 mt-2 mr-12 bg-white border border-gray-300 rounded shadow-lg p-4 z-50 w-64 text-gray-700 text-sm text-left outline-none"
+                    aria-label='Hilfe zu Suchergebnissen Popup'>
                     <div className="font-bold mb-2">Nicht die Suchergebnisse, die du erwartest?</div>
                     <div>
                       - Schau in der Übersicht nach, ob die Quellen vorliegen.<br />
@@ -653,7 +669,7 @@ export default function Search() {
                       - Versuche den Prompt als Frage zu formulieren, anstatt nur Stichworte zu verwenden.
                     </div>
                     <button
-                      className="mt-3 px-3 py-1 bg-gray-200 rounded text-gray-700 text-xs outline-none"
+                      className="mt-3 px-3 py-1 bg-gray-200 rounded text-gray-700 text-xs"
                       onClick={() => setShowSearchHelp(false)}
                       onBlur={() => setShowSearchHelp(false)}
                     >
@@ -671,11 +687,19 @@ export default function Search() {
                     type="checkbox"
                     checked={resultsIsChecked[index] ?? true}
                     onChange={() => handleCheckboxChange(index)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleCheckboxChange(index);
+                      }
+                    }}
                     className="absolute top-2 left-2 border bg-white w-5 h-5 rounded cursor-pointer"
                     title={resultsIsChecked[index] ? `Ergebnis abwählen` : `Ergebnis auswählen`}
                     aria-label={resultsIsChecked[index] ? `Ergebnis auswählen` : `Ergebnis abwählen`}
                   />
-                  <div
+                  <button
+                    aria-label={resultsIsPinned[index] ? "Artikel entpinnen" : "Artikel anpinnen"}
+                    tabIndex={0}
                     onClick={() => handlePinToggle(index)}
                     className={`absolute top-2 left-9 cursor-pointer`}
                   >
@@ -692,7 +716,7 @@ export default function Search() {
                         <path d="M1.4694 21.4697C1.17666 21.7627 1.1769 22.2376 1.46994 22.5304C1.76298 22.8231 2.23786 22.8229 2.5306 22.5298L1.4694 21.4697ZM7.18383 17.8719C7.47657 17.5788 7.47633 17.1039 7.18329 16.8112C6.89024 16.5185 6.41537 16.5187 6.12263 16.8117L7.18383 17.8719ZM2.5306 22.5298L7.18383 17.8719L6.12263 16.8117L1.4694 21.4697L2.5306 22.5298Z" fill="#1C274C"/>
                       </svg>
                     )}
-                  </div>
+                  </button>
                   
                   <div className="flex flex-col min-w-0 max-w-full text-xs text-gray-500 mb-1">
                     <span className="text-lg ml-16 font-bold whitespace-nowrap overflow-x-auto block">
@@ -717,7 +741,7 @@ export default function Search() {
             })}
             <button
               onClick={() => setResultPage(resultPage + 1)}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer outline-none"
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
               hidden={results.length === 0}
               disabled={isGenerating || isSearching}
               aria-label='Mehr Ergebnisse laden'
@@ -727,7 +751,11 @@ export default function Search() {
             </button>
             </div>
           </Panel>
-          <PanelResizeHandle className="w-4 bg-gray-300"/>
+
+          <PanelResizeHandle 
+            className="w-4 bg-gray-300" 
+            aria-label="Griff zum Anpassen der Größe des beiden Bereiche"
+          />
           
           <Panel defaultSize={50} minSize={20} className="flex flex-col">
           {/* Text Area */}
@@ -749,11 +777,11 @@ export default function Search() {
               )}
               <div className="w-full h-full overflow-y-auto p-2 mb-1 resize-none border border-gray-300 rounded text-left block">
                 {isGenerating ? (
-                  <span className="text-gray-400">Generiere Text...</span>
+                  "Generiere Text..."
                 ) : textSummary ? (
                   <ReactMarkdown>{textSummary}</ReactMarkdown>
                 ) : (
-                  <span className="text-gray-400">Hier wird der generierte Text angezeigt...</span>
+                  "Hier wird der generierte Text angezeigt..."
                 )}
               </div>
               
@@ -846,7 +874,7 @@ export default function Search() {
                   <Menu as="div" className="relative w-full inline-block text-left">
                     {/* Dropdown Button */}
                     <MenuButton
-                      className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center outline-none"
+                      className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center"
                       onClick={handleShowTextHistory}
                       title="Textverlauf"
                       aria-label="Textverlauf"
