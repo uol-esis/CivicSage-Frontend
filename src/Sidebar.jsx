@@ -18,7 +18,9 @@ export default function Sidebar() {
   const currentPath = window.location.pathname;
 
   return (
-    <nav className="fixed top-0 left-0 z-50 bg-gray-100 h-full shadow-lg transition-all duration-300 hover:w-30 w-12 group flex flex-col">
+    <nav className="fixed top-0 left-0 z-50 bg-gray-100 h-full shadow-lg transition-all duration-300 hover:w-30 w-12 group flex flex-col"
+      aria-label="Seitenleiste Navigation"
+    >
       <a href="/">
         <span className="sr-only">CivicSage</span>
         <img
@@ -33,13 +35,12 @@ export default function Sidebar() {
             <li key={item.name} className="overflow-hidden">
               <a
                 href={item.href}
-                className={`text-sm font-semibold block whitespace-nowrap transition-transform hover:scale-105 text-gray-900 ${
+                aria-label={'Navigiere zu ' + item.name}
+                className={`hidden group-hover:block text-sm font-semibold block whitespace-nowrap transition-transform hover:scale-105 text-gray-900 ${
                   currentPath === item.href ? 'group-hover:bg-gray-300 text-blue-600 rounded px-2 py-1' : ''
                 }`}
               >
-                <span className="hidden group-hover:block">
-                  {item.name}
-                </span>
+                {item.name}
               </a>
             </li>
           ))}
@@ -50,9 +51,10 @@ export default function Sidebar() {
           <li key={item.name} className="overflow-hidden">
             <a
               href={item.href}
-              className="text-sm font-semibold text-gray-900 hover:scale-105 transition-transform block whitespace-nowrap"
+              aria-label={'Navigiere zu ' + item.name}
+              className="hidden group-hover:block text-sm font-semibold text-gray-900 hover:scale-105 transition-transform block whitespace-nowrap"
             >
-              <span className="hidden group-hover:block">{item.name}</span>
+              {item.name}
             </a>
           </li>
         ))}

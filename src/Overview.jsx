@@ -119,7 +119,7 @@ const filteredWebsites = content.websites?.filter(
       </h2>
       <div>
       <button
-        className="flex-shrink-0 mr-4 text-blue-500 hover:underline"
+        className="flex-shrink-0 mr-4 text-blue-700 hover:underline"
         onClick={() => handleUpdateWebsite(filteredWebsites.map(item => item.websiteId))}
       >
         Aktualisiere angezeigte Websites
@@ -129,6 +129,7 @@ const filteredWebsites = content.websites?.filter(
         placeholder="Suche nach Inhalten..."
         className="justify-self-end p-2 border rounded w-64 outline-none focus:ring-2 ring-blue-500"
         onChange={(e) => {setSearch(e.target.value)}}
+        aria-label='Nach Inhalten suchen'
       />
       </div>
     </div>
@@ -141,10 +142,14 @@ const filteredWebsites = content.websites?.filter(
               className="relative flex items-center mb-2 p-2 border-b"
             >
               <div className="flex-1 min-w-0 flex flex-row">
-                <span className="font-semibold basis-[40%] min-w-0 pr-4 truncate block whitespace-nowrap overflow-x-auto text-left">
+                <span className="font-semibold basis-[40%] min-w-0 pr-4 truncate block whitespace-nowrap overflow-x-auto text-left"
+                  tabIndex={0} 
+                >
                   {item.title}
                 </span>
-                <span className="text-gray-600 basis-[45%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-4">
+                <span className="text-gray-600 basis-[45%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-4"
+                  tabIndex={0}
+                >
                   {item.fileName}
                 </span>
                 <span className="text-gray-600 basis-[15%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-2">
@@ -164,7 +169,7 @@ const filteredWebsites = content.websites?.filter(
                 Aktualisieren
               </button>
               <button
-                className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
+                className="flex-shrink-0 ml-4 text-blue-700 hover:underline"
                 onClick={() => handleDeleteEntry(item.fileId)}
               >
                 Löschen
@@ -188,7 +193,9 @@ const filteredWebsites = content.websites?.filter(
                 >
                   {item.url}
                 </a>
-                <span className="text-gray-600 basis-[15%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-2">
+                <span className="text-gray-600 basis-[15%] min-w-0 block whitespace-nowrap overflow-x-auto text-left mr-2"
+                  tabIndex={0}
+                >
                   {item.uploadDate ? new Date(item.uploadDate).toLocaleString('de-DE', {
                       day: '2-digit',
                       month: '2-digit',
@@ -200,13 +207,13 @@ const filteredWebsites = content.websites?.filter(
                 </span>
               </div>
               <button
-                className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
+                className="flex-shrink-0 ml-4 text-blue-700 hover:underline"
                 onClick={() => handleUpdateWebsite([item.websiteId])}
               >
                 Aktualisieren
               </button>
               <button
-                className="flex-shrink-0 ml-4 text-blue-500 hover:underline"
+                className="flex-shrink-0 ml-4 text-blue-700 hover:underline"
                 onClick={() => handleDeleteEntry(item.websiteId)}
               >
                 Löschen

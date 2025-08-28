@@ -166,6 +166,7 @@ export default function Upload() {
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="www.beispiel.de..."
           className="border border-gray-300 rounded px-4 py-2 w-full mt-2 outline-none focus:ring-2 ring-blue-500"
+          aria-label='Eingabefeld für die URL der Webseite'
         />
         <button
           onClick={handleConfirmWebsite}
