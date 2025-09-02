@@ -19,7 +19,7 @@ export default function Search() {
   const [textSummary, setTextSummary] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [resultCount, setResultCount] = useState(5); // Default result count
+  const [resultCount, setResultCount] = useState(5); // Default results per page
   const [resultPage, setResultPage] = useState(0); // Default result page
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
@@ -35,6 +35,7 @@ export default function Search() {
   const [autoTextNotification, setAutoTextNotification] = useState(null);
   const [showPromptButtons, setShowPromptButtons] = useState(true);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [chat, setChat] = useState(null);
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -302,8 +303,34 @@ export default function Search() {
     }
   }, [results]);
 
-  {/* Takes all checked boxes and tells the LLM to generate a summary based off of it*/}
+  {/* Three methods together: Takes all checked boxes and tells the LLM to generate a summary based off of it
+      1: create a new Chat object*/}
   const handleGenerate = () => {
+    setIsGenerating(true);
+    console.log('Generating text with prompt:', prompt);
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let opts = {};
+    apiInstance.getChat(opts, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
+      } else {
+        console.log('API called successfully. Returned data: ' + data);
+        setChat(data);
+      }
+    });
+  }
+
+  useEffect(() => {
+    if (chat) {
+      giveContextToChat();
+    }
+  }, [chat]);
+
+  {/* 2: give the chat context (the checked boxes) */}
+  const giveContextToChat = () => {
+    console.log('Giving context ', resultsIsChecked, ' to chat: ', chat);
     const resultIds = []
     for (let i = 0; i < results.length; i++) {
       if (resultsIsChecked[i]) {
@@ -315,25 +342,39 @@ export default function Search() {
       alert('Please select at least one result to generate text.');
       return;
     }
-    setIsGenerating(true);
-    console.log('Generating text with prompt:', prompt, 'for results:', resultIds);
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
-    let systemPrompt = "Du bist ein KI-Textgenerator, der auf Basis von Dokumenten kurze Zusammenfassungen erstellt. Deine Aufgabe ist es, eine prägnante und informative Zusammenfassung zu generieren. Anschließend sind Textpassagen gegeben, die im Prompt als 'ausgewählte Ergebnisse' bezeichnet werden.";
-    let summarizeEmbeddingsRequest = new CivicSage.SummarizeEmbeddingsRequest(resultIds, prompt, systemPrompt);
-    apiInstance.summarizeEmbeddings(summarizeEmbeddingsRequest, (error, data, response) => {
-      setIsGenerating(false);
+    apiInstance.updateChat(chat.chatId, chat, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
+      } else {
+        console.log('API called successfully.');
+        sendPromptToChat();
+      }
+    });
+  }
+
+  {/* 3: send the prompt to the chat */}
+  const sendPromptToChat = () => {
+    console.log('Generating text with prompt: ', prompt);
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    //let systemPrompt = "Du bist ein KI-Textgenerator, der auf Basis von Dokumenten kurze Zusammenfassungen erstellt. Deine Aufgabe ist es, eine prägnante und informative Zusammenfassung zu generieren. Anschließend sind Textpassagen gegeben, die im Prompt als 'ausgewählte Ergebnisse' bezeichnet werden.";
+    let chatMessage = new CivicSage.ChatMessage("user", prompt, [], []); // ChatMessage |     
+    apiInstance.sendMessage(chat.chatId, chatMessage, (error, data, response) => {
+        setIsGenerating(false);
       if (error) {
         console.error(error);
         setTextSummary("Ein Fehler ist aufgetreten: " + error)
       } else {
-        console.log('API called successfully. Returned data: ' + data.summary);
-        setTextSummary(data.summary)
+        console.log('API called successfully. Returned data: ' + data.messages);
+        setChat(data);
         
         // Add summary to localStorage "text history"
         const history = JSON.parse(localStorage.getItem('textHistory')) || []; // Retrieve existing history or initialize as an empty array
-        if (!history.includes(data.summary)) { // Avoid duplicates
-          history.push(data.summary);
+        if (!history.includes(data.chatId)) { // Avoid duplicates
+          history.push(data.chatId);
           if (history.length > 10) {
             history.splice(0, history.length - 10);
           }
@@ -778,8 +819,13 @@ export default function Search() {
               <div className="w-full h-full overflow-y-auto p-2 mb-1 resize-none border border-gray-300 rounded text-left block">
                 {isGenerating ? (
                   "Generiere Text..."
-                ) : textSummary ? (
-                  <ReactMarkdown>{textSummary}</ReactMarkdown>
+                ) : chat ? (
+                  chat && chat.messages.map((msg, idx) => (
+                    <div key={idx} className="mb-4">
+                      <div className="font-semibold text-xs text-gray-500 mb-1">{msg.role}</div>
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  ))
                 ) : (
                   "Hier wird der generierte Text angezeigt..."
                 )}
@@ -834,11 +880,11 @@ export default function Search() {
                     </button>
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Übersetze die ausgewählten Ergebnisse ins Englische!'
+                        ${prompt === 'Übersetze die ausgewählten Ergebnisse ins Deutsche!'
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
-                      onClick={() => setPrompt('Übersetze die ausgewählten Ergebnisse ins Englische!')}
+                      onClick={() => setPrompt('Übersetze die ausgewählten Ergebnisse ins Deutsche!')}
                       type="button"
                     >
                       Übersetzen
