@@ -700,7 +700,7 @@ export default function Search() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Suchen..."
+            placeholder="Stelle eine Frage oder gib einen Suchbegriff ein..."
             className="border border-gray-300 px-4 py-2 ml-2 w-full outline-none focus:ring-2 ring-blue-500"
             aria-label="Suchfeld"
           />
@@ -708,12 +708,12 @@ export default function Search() {
             type="submit"
             className="bg-blue-700 text-white pl-4 py-2 cursor-pointer whitespace-nowrap"
             disabled={isSearching}
-            aria-label="Datenbank durchsuchen"
+            aria-label="Suchen"
           >
             {isSearching ? (
               <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
             ) : (
-              'Datenbank durchsuchen'
+              'Suchen'
             )}
           </button>
           {/* Dropdown with search filter */}
@@ -1194,7 +1194,7 @@ export default function Search() {
                       isGenerating
                         ? 'Text wird gerade generiert...'
                         : (results.length === 0 && tempFiles.length === 0)
-                          ? 'Bitte durchsuche die Datenbank nach mindestens einem Ergebnis oder füge eine Datei hinzu.'
+                          ? 'Bitte suche nach mindestens einem Ergebnis oder füge eine Datei hinzu.'
                           : undefined
                     }
                   >
