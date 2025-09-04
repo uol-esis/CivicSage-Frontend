@@ -23,7 +23,7 @@ export default function Search() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
   const [bookmarks, setBookmarks] = useState([]);
-  const [textHistory, setTextHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState([]);
   const [filterTitle, setFilterTitle] = useState('');
   const [filterUrl, setFilterUrl] = useState('');
   const [editingBookmark, setEditingBookmark] = useState(null);
@@ -238,12 +238,15 @@ export default function Search() {
     handleShowBookmarks(); // Refresh the bookmark list
   };
 
-  const handleShowTextHistory = () => {
-    const savedTextHistory = JSON.parse(localStorage.getItem('textHistory')) || [];
-    setTextHistory(savedTextHistory);
+  const handleShowChatHistory = () => {
+    const savedChatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    const cleanedHistory = savedChatHistory.filter(
+      item => item.descriptor && item.descriptor.trim() !== ''
+    );
+    setChatHistory(cleanedHistory);
   };
 
-  const handleTextHistoryItemClick = (item) => {
+  const handleChatHistoryItemClick = (item) => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
     apiInstance.getChat({chatId: item.chatId}, (error, data, response) => {
@@ -258,8 +261,8 @@ export default function Search() {
   };
 
   // Add chat to localStorage "text history"
-  const addToTextHistory = (data) => {
-    const history = JSON.parse(localStorage.getItem('textHistory')) || []; // Retrieve existing history or initialize as an empty array
+  const addToChatHistory = (data) => {
+    const history = JSON.parse(localStorage.getItem('chatHistory')) || []; // Retrieve existing history or initialize as an empty array
     const descriptor = query && query.trim() ? query : prompt;
     // Avoid duplicates by chatId
     if (!history.some(item => item.chatId === data.chatId)) {
@@ -268,20 +271,23 @@ export default function Search() {
         deleteChat(history[0].chatId); // Delete the oldest chat from the server
         history.splice(0, history.length - 10);
       }
-      localStorage.setItem('textHistory', JSON.stringify(history));
+      localStorage.setItem('chatHistory', JSON.stringify(history));
     }
   }
 
   const deleteChat = (chatId) => {
-    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
-    let apiInstance = new CivicSage.DefaultApi(client);
-    apiInstance.deleteChat(chatId, (error, data, response) => {
-      if (error) {
-        console.error(error);
-      } else {
-        console.log('Chat deleted: ' + chatId);
-      }
-    });
+    try{
+      const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+      let apiInstance = new CivicSage.DefaultApi(client);
+      apiInstance.deleteChat(chatId, (error, data, response) => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log('Chat deleted: ' + chatId);
+        }
+      });
+    }
+    catch(e){}    
   }
 
   {/* Functions that handle checked functionality */}
@@ -387,7 +393,7 @@ export default function Search() {
     if (chatIsInitialized && chat) {
       giveContextToChat();
       setChatIsInitialized(false);
-      if (chatWithoutSearch && results.length > 0) {
+      if (!chatWithoutSearch && results.length > 0) {
         setAutoTextNotification({ message: <>Diese Zusammenfassung wird automatisch generiert. Für <b>bessere</b> Antworten, versuche die Ergebnisse links manuell auszuwählen oder den Prompt anzupassen!</>, color: 'bg-yellow-600' });
       }
       setChatWithoutSearch(false);
@@ -484,7 +490,7 @@ export default function Search() {
         }))      } else {
         console.log('API called successfully. Returned data: ' + data.messages);
         setChat(data);
-        addToTextHistory(data);
+        addToChatHistory(data);
       }
     });
   }
@@ -673,14 +679,14 @@ export default function Search() {
           />
           <button
             type="submit"
-            className="bg-blue-700 text-white pl-4 py-2 cursor-pointer"
+            className="bg-blue-700 text-white pl-4 py-2 cursor-pointer whitespace-nowrap"
             disabled={isSearching}
-            aria-label="Suchen"
+            aria-label="Datenbank durchsuchen"
           >
             {isSearching ? (
               <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
             ) : (
-              'Suchen'
+              'Datenbank durchsuchen'
             )}
           </button>
           {/* Dropdown with search filter */}
@@ -1100,8 +1106,8 @@ export default function Search() {
                   <button
                     type="button"
                     className="absolute top-0 right-0 p-1"
-                    title="Dokument hochladen"
-                    aria-label="Dokument hochladen"
+                    title="Dokument hinzufügen"
+                    aria-label="Dokument hinzufügen"
                     onClick={handleTemporaryFileButtonClick}
                     style={{ minWidth: 32, minHeight: 32 }}
                   >
@@ -1116,7 +1122,7 @@ export default function Search() {
                     {/* Dropdown Button */}
                     <MenuButton
                       className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center"
-                      onClick={handleShowTextHistory}
+                      onClick={handleShowChatHistory}
                       title="Textverlauf"
                       aria-label="Textverlauf"
                     >
@@ -1129,16 +1135,16 @@ export default function Search() {
                     <MenuItems className="absolute right-0 w-[calc(30vw-4rem)] bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4 outline-none">
 
                       <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
-                      {textHistory.length > 0 ? (
+                      {chatHistory.length > 0 ? (
                         <ul className="list-disc pl-2">
-                          {textHistory.map((item, index) => (
+                          {chatHistory.map((item, index) => (
                             <MenuItem key={index}>
                               {({ active }) => (
                                 <li
                                   className={`whitespace-nowrap overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 ${
                                     active ? 'bg-gray-100' : ''
                                   } text-gray-700 cursor-pointer`}
-                                  onClick={() => handleTextHistoryItemClick(item)}
+                                  onClick={() => handleChatHistoryItemClick(item)}
                                 >
                                   {item.descriptor}
                                 </li>
