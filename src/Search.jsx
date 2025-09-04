@@ -40,6 +40,8 @@ export default function Search() {
   const [tempFiles, setTempFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [chatWithoutSearch, setChatWithoutSearch] = useState(false);
+  const [promptType, setPromptType] = useState('summary');
+
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -154,6 +156,31 @@ export default function Search() {
   useEffect(() => {
       setHelpHighlight(false);
   }, []);
+
+  useEffect(() => {
+    let promptText = '';
+    switch (promptType) {
+      case 'summary':
+        promptText = 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse, um die folgende Frage zu beantworten: \n' + query;
+        break;
+      case 'bullets':
+        promptText = 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen, um die folgende Frage zu beantworten: \n' + query;
+        break;
+      case 'explain':
+        promptText = 'Beantworte die folgende Frage, indem du die ausgewählten Ergebnisse so erklärst, dass ich sie ohne jegliches Vorwissen verstehen kann: \n' + query;
+        break;
+      case 'short':
+        promptText = 'Beantworte die folgende Frage, indem du die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze) kürzt: \n' + query;
+        break;
+      case 'translate':
+        promptText = 'Übersetze deine letzte Antwort ins Englische!';
+        break;
+      default:
+        promptText = '';
+    }
+    setPrompt(promptText);
+  }, [promptType, query]);
+
 
   const handleShowHistory = () => {
     const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -994,59 +1021,59 @@ export default function Search() {
                   <div className="flex flex-row flex-wrap mb-1 gap-1">
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!'
+                        ${prompt === 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse, um die folgende Frage zu beantworten: \n' + query
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
-                      onClick={() => setPrompt('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!')}
+                      onClick={() => setPromptType('summary')}
                       type="button"
                     >
                       Zusammenfassen
                     </button>
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!'
+                        ${prompt === 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen, um die folgende Frage zu beantworten: \n' + query
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
-                      onClick={() => setPrompt('Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen!')}
+                      onClick={() => setPromptType('bullets')}
                       type="button"
                     >
                       Stichpunkte
                     </button>
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!'
+                        ${prompt === 'Beantworte die folgende Frage, indem du die ausgewählten Ergebnisse so erklärst, dass ich sie ohne jegliches Vorwissen verstehen kann: \n' + query
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
-                      onClick={() => setPrompt('Erkläre mir die Ausgewählten Ergebnisse, so dass ich sie ohne jegliches Vorwissen verstehen kann!')}
+                      onClick={() => setPromptType('explain')}
                       type="button"
                     >
                       Erklärung
                     </button>
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!'
+                        ${prompt === 'Beantworte die folgende Frage, indem du die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze) kürzt: \n' + query
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
-                      onClick={() => setPrompt('Kürze die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze)!')}
+                      onClick={() => setPromptType('short')}
                       type="button"
                     >
-                      Kürzen
+                      Kurz
                     </button>
-                    <button
+                    {/*<button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Übersetze die ausgewählten Ergebnisse ins Deutsche!'
+                        ${prompt === 'Übersetze deine letzte Antwort ins Englische!'
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
-                      onClick={() => setPrompt('Übersetze die ausgewählten Ergebnisse ins Deutsche!')}
+                      onClick={() => setPromptType('translate')}
                       type="button"
                     >
                       Übersetzen
-                    </button>
+                    </button>*/}
                   </div>
                 )}
                 <div className="flex flex-row justify-end flex-1">
@@ -1159,10 +1186,17 @@ export default function Search() {
                   </Menu>
                   <button
                     type="submit"
-                    className="bg-blue-700 text-white px-4 py-2 h-[3.25rem] rounded-r cursor-pointer"
+                    className="bg-blue-700 text-white px-4 py-2 h-[3.25rem] rounded-r cursor-pointer disabled:opacity-50"
                     onClick={() => setAutoTextNotification(null)}
-                    disabled={isGenerating}
+                    disabled={isGenerating || results.length === 0 && tempFiles.length === 0}
                     aria-label="Text generieren"
+                    title={
+                      isGenerating
+                        ? 'Text wird gerade generiert...'
+                        : (results.length === 0 && tempFiles.length === 0)
+                          ? 'Bitte durchsuche die Datenbank nach mindestens einem Ergebnis oder füge eine Datei hinzu.'
+                          : undefined
+                    }
                   >
                     {isGenerating ? (
                       <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
