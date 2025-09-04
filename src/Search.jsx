@@ -16,7 +16,6 @@ export default function Search() {
   const [allPinned, setAllPinned] = useState(false);
   const [pinnedResults, setPinnedResults] = useState([]);
   const [prompt, setPrompt] = useState('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!');
-  const [textSummary, setTextSummary] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultCount, setResultCount] = useState(5); // Default results per page
@@ -186,7 +185,18 @@ export default function Search() {
     setResultsIsChecked(bookmark.resultsIsChecked);
     setResultsIsPinned(bookmark.resultsIsPinned);
     setPrompt(bookmark.prompt);
-    setTextSummary(bookmark.textSummary);
+    let chatId = bookmark.chatId;
+    let client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    apiInstance.getChat({chatId: chatId}, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Fehler beim Laden des Chats. Bitte versuchen Sie es erneut.');
+      } else {
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data) + " messages: " + data.messages );
+        setChat(data);
+      }
+    });
   }
 
   const handleSaveBookmark = () => {
@@ -197,7 +207,7 @@ export default function Search() {
       resultsIsChecked: resultsIsChecked,
       resultsIsPinned: resultsIsPinned,
       prompt: prompt,
-      textSummary: textSummary
+      chatId: chat.chatId
     };
     const bookmarkList = JSON.parse(localStorage.getItem('bookmarks')) || [];
     bookmarkList.push(bookmark);
@@ -234,8 +244,45 @@ export default function Search() {
   };
 
   const handleTextHistoryItemClick = (item) => {
-    setTextSummary(item);
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    apiInstance.getChat({chatId: item.chatId}, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Fehler beim Laden der Zusammenfassung. Bitte versuchen Sie es erneut.');
+      } else {
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data) + " messages: " + data.messages );
+        setChat(data);
+      }
+    });
   };
+
+  // Add chat to localStorage "text history"
+  const addToTextHistory = (data) => {
+    const history = JSON.parse(localStorage.getItem('textHistory')) || []; // Retrieve existing history or initialize as an empty array
+    const descriptor = query && query.trim() ? query : prompt;
+    // Avoid duplicates by chatId
+    if (!history.some(item => item.chatId === data.chatId)) {
+      history.push({ chatId: data.chatId, descriptor });
+      if (history.length > 10) {
+        deleteChat(history[0].chatId); // Delete the oldest chat from the server
+        history.splice(0, history.length - 10);
+      }
+      localStorage.setItem('textHistory', JSON.stringify(history));
+    }
+  }
+
+  const deleteChat = (chatId) => {
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    apiInstance.deleteChat(chatId, (error, data, response) => {
+      if (error) {
+        console.error(error);
+      } else {
+        console.log('Chat deleted: ' + chatId);
+      }
+    });
+  }
 
   {/* Functions that handle checked functionality */}
   const handleCheckboxChange = (idx) => {
@@ -316,7 +363,7 @@ export default function Search() {
 
 
 
-  {/* Four methods together: Takes all checked boxes and tells the LLM to generate a summary based off of it
+  {/* Four methods together: Takes all checked boxes and tells the LLM to answer the prompt based off of it
       1: create a new Chat object*/}
   const createNewChat = () => {
     console.log('Generating text with prompt:', prompt);
@@ -329,7 +376,7 @@ export default function Search() {
         console.error(error);
         alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
       } else {
-        console.log('API called successfully. Returned data: ' + data);
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data));
         setChat(data);
         setChatIsInitialized(true);
       }
@@ -379,7 +426,7 @@ export default function Search() {
         console.error(error);
         alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
       } else {
-        console.log('API called successfully.');
+        console.log('API called successfully to update chat. chatID: ' + chat.chatId );
         checkForAdditionalContext();
       }
     });
@@ -428,20 +475,16 @@ export default function Search() {
         setIsGenerating(false);
       if (error) {
         console.error(error);
-        setTextSummary("Ein Fehler ist aufgetreten: " + error)
-      } else {
+        setChat(prev => ({
+          ...prev,
+          messages: [
+            ...prev.messages,
+            {role: "assistant", content: "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."}
+          ]
+        }))      } else {
         console.log('API called successfully. Returned data: ' + data.messages);
         setChat(data);
-        
-        // Add summary to localStorage "text history"
-        const history = JSON.parse(localStorage.getItem('textHistory')) || []; // Retrieve existing history or initialize as an empty array
-        if (!history.includes(data.chatId)) { // Avoid duplicates
-          history.push(data.chatId);
-          if (history.length > 10) {
-            history.splice(0, history.length - 10);
-          }
-          localStorage.setItem('textHistory', JSON.stringify(history)); // Save updated history
-        }
+        addToTextHistory(data);
       }
     });
   }
@@ -1097,7 +1140,7 @@ export default function Search() {
                                   } text-gray-700 cursor-pointer`}
                                   onClick={() => handleTextHistoryItemClick(item)}
                                 >
-                                  {item}
+                                  {item.descriptor}
                                 </li>
                               )}
                             </MenuItem>
