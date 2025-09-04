@@ -63,10 +63,10 @@ export default function Upload() {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
 
-    const uids = new Array(selectedFiles.length);
+    const uids = [];
 
     selectedFiles.forEach((file, index) => {
-      apiInstance.uploadFile(file, (error, data, response) => {
+      apiInstance.uploadFile(file, {}, (error, data, response) => {
         if (error) {
           console.error(error);
           let errorMsg = `Die Datei "${file.name}" konnte nicht zur Datenbank hinzugefügt werden.`;
@@ -85,7 +85,7 @@ export default function Upload() {
           uids[index] = undefined; // Mark this index as failed
         } else {
           console.log(`File ${file.name} uploaded successfully. UID: ${data.id}`);
-          uids[index] = data.id;    
+          uids.push(data.id);
         }
         // Check if all UIDs are filled
         if (uids.length === selectedFiles.length) {
