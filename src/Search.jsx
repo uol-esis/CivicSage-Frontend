@@ -16,7 +16,6 @@ export default function Search() {
   const [allPinned, setAllPinned] = useState(false);
   const [pinnedResults, setPinnedResults] = useState([]);
   const [prompt, setPrompt] = useState('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!');
-  const [textSummary, setTextSummary] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultCount, setResultCount] = useState(5); // Default results per page
@@ -24,7 +23,7 @@ export default function Search() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [pendingSearch, setPendingSearch] = useState(false);
   const [bookmarks, setBookmarks] = useState([]);
-  const [textHistory, setTextHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState([]);
   const [filterTitle, setFilterTitle] = useState('');
   const [filterUrl, setFilterUrl] = useState('');
   const [editingBookmark, setEditingBookmark] = useState(null);
@@ -186,7 +185,18 @@ export default function Search() {
     setResultsIsChecked(bookmark.resultsIsChecked);
     setResultsIsPinned(bookmark.resultsIsPinned);
     setPrompt(bookmark.prompt);
-    setTextSummary(bookmark.textSummary);
+    let chatId = bookmark.chatId;
+    let client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    apiInstance.getChat({chatId: chatId}, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Fehler beim Laden des Chats. Bitte versuchen Sie es erneut.');
+      } else {
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data) + " messages: " + data.messages );
+        setChat(data);
+      }
+    });
   }
 
   const handleSaveBookmark = () => {
@@ -197,7 +207,7 @@ export default function Search() {
       resultsIsChecked: resultsIsChecked,
       resultsIsPinned: resultsIsPinned,
       prompt: prompt,
-      textSummary: textSummary
+      chatId: chat.chatId
     };
     const bookmarkList = JSON.parse(localStorage.getItem('bookmarks')) || [];
     bookmarkList.push(bookmark);
@@ -228,14 +238,57 @@ export default function Search() {
     handleShowBookmarks(); // Refresh the bookmark list
   };
 
-  const handleShowTextHistory = () => {
-    const savedTextHistory = JSON.parse(localStorage.getItem('textHistory')) || [];
-    setTextHistory(savedTextHistory);
+  const handleShowChatHistory = () => {
+    const savedChatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    const cleanedHistory = savedChatHistory.filter(
+      item => item.descriptor && item.descriptor.trim() !== ''
+    );
+    setChatHistory(cleanedHistory);
   };
 
-  const handleTextHistoryItemClick = (item) => {
-    setTextSummary(item);
+  const handleChatHistoryItemClick = (item) => {
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    apiInstance.getChat({chatId: item.chatId}, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Fehler beim Laden der Zusammenfassung. Bitte versuchen Sie es erneut.');
+      } else {
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data) + " messages: " + data.messages );
+        setChat(data);
+      }
+    });
   };
+
+  // Add chat to localStorage "text history"
+  const addToChatHistory = (data) => {
+    const history = JSON.parse(localStorage.getItem('chatHistory')) || []; // Retrieve existing history or initialize as an empty array
+    const descriptor = query && query.trim() ? query : prompt;
+    // Avoid duplicates by chatId
+    if (!history.some(item => item.chatId === data.chatId)) {
+      history.push({ chatId: data.chatId, descriptor });
+      if (history.length > 10) {
+        deleteChat(history[0].chatId); // Delete the oldest chat from the server
+        history.splice(0, history.length - 10);
+      }
+      localStorage.setItem('chatHistory', JSON.stringify(history));
+    }
+  }
+
+  const deleteChat = (chatId) => {
+    try{
+      const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+      let apiInstance = new CivicSage.DefaultApi(client);
+      apiInstance.deleteChat(chatId, (error, data, response) => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log('Chat deleted: ' + chatId);
+        }
+      });
+    }
+    catch(e){}    
+  }
 
   {/* Functions that handle checked functionality */}
   const handleCheckboxChange = (idx) => {
@@ -316,7 +369,7 @@ export default function Search() {
 
 
 
-  {/* Four methods together: Takes all checked boxes and tells the LLM to generate a summary based off of it
+  {/* Four methods together: Takes all checked boxes and tells the LLM to answer the prompt based off of it
       1: create a new Chat object*/}
   const createNewChat = () => {
     console.log('Generating text with prompt:', prompt);
@@ -329,7 +382,7 @@ export default function Search() {
         console.error(error);
         alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
       } else {
-        console.log('API called successfully. Returned data: ' + data);
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data));
         setChat(data);
         setChatIsInitialized(true);
       }
@@ -340,7 +393,7 @@ export default function Search() {
     if (chatIsInitialized && chat) {
       giveContextToChat();
       setChatIsInitialized(false);
-      if (chatWithoutSearch && results.length > 0) {
+      if (!chatWithoutSearch && results.length > 0) {
         setAutoTextNotification({ message: <>Diese Zusammenfassung wird automatisch generiert. Für <b>bessere</b> Antworten, versuche die Ergebnisse links manuell auszuwählen oder den Prompt anzupassen!</>, color: 'bg-yellow-600' });
       }
       setChatWithoutSearch(false);
@@ -379,7 +432,7 @@ export default function Search() {
         console.error(error);
         alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
       } else {
-        console.log('API called successfully.');
+        console.log('API called successfully to update chat. chatID: ' + chat.chatId );
         checkForAdditionalContext();
       }
     });
@@ -428,20 +481,16 @@ export default function Search() {
         setIsGenerating(false);
       if (error) {
         console.error(error);
-        setTextSummary("Ein Fehler ist aufgetreten: " + error)
-      } else {
+        setChat(prev => ({
+          ...prev,
+          messages: [
+            ...prev.messages,
+            {role: "assistant", content: "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."}
+          ]
+        }))      } else {
         console.log('API called successfully. Returned data: ' + data.messages);
         setChat(data);
-        
-        // Add summary to localStorage "text history"
-        const history = JSON.parse(localStorage.getItem('textHistory')) || []; // Retrieve existing history or initialize as an empty array
-        if (!history.includes(data.chatId)) { // Avoid duplicates
-          history.push(data.chatId);
-          if (history.length > 10) {
-            history.splice(0, history.length - 10);
-          }
-          localStorage.setItem('textHistory', JSON.stringify(history)); // Save updated history
-        }
+        addToChatHistory(data);
       }
     });
   }
@@ -630,14 +679,14 @@ export default function Search() {
           />
           <button
             type="submit"
-            className="bg-blue-700 text-white pl-4 py-2 cursor-pointer"
+            className="bg-blue-700 text-white pl-4 py-2 cursor-pointer whitespace-nowrap"
             disabled={isSearching}
-            aria-label="Suchen"
+            aria-label="Datenbank durchsuchen"
           >
             {isSearching ? (
               <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
             ) : (
-              'Suchen'
+              'Datenbank durchsuchen'
             )}
           </button>
           {/* Dropdown with search filter */}
@@ -1057,8 +1106,8 @@ export default function Search() {
                   <button
                     type="button"
                     className="absolute top-0 right-0 p-1"
-                    title="Dokument hochladen"
-                    aria-label="Dokument hochladen"
+                    title="Dokument hinzufügen"
+                    aria-label="Dokument hinzufügen"
                     onClick={handleTemporaryFileButtonClick}
                     style={{ minWidth: 32, minHeight: 32 }}
                   >
@@ -1073,7 +1122,7 @@ export default function Search() {
                     {/* Dropdown Button */}
                     <MenuButton
                       className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center"
-                      onClick={handleShowTextHistory}
+                      onClick={handleShowChatHistory}
                       title="Textverlauf"
                       aria-label="Textverlauf"
                     >
@@ -1086,18 +1135,18 @@ export default function Search() {
                     <MenuItems className="absolute right-0 w-[calc(30vw-4rem)] bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4 outline-none">
 
                       <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
-                      {textHistory.length > 0 ? (
+                      {chatHistory.length > 0 ? (
                         <ul className="list-disc pl-2">
-                          {textHistory.map((item, index) => (
+                          {chatHistory.map((item, index) => (
                             <MenuItem key={index}>
                               {({ active }) => (
                                 <li
                                   className={`whitespace-nowrap overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 ${
                                     active ? 'bg-gray-100' : ''
                                   } text-gray-700 cursor-pointer`}
-                                  onClick={() => handleTextHistoryItemClick(item)}
+                                  onClick={() => handleChatHistoryItemClick(item)}
                                 >
-                                  {item}
+                                  {item.descriptor}
                                 </li>
                               )}
                             </MenuItem>
