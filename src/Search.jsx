@@ -38,6 +38,9 @@ export default function Search() {
   const [chat, setChat] = useState(null);
   const [chatIsInitialized, setChatIsInitialized] = useState(false);
   const lastMessageRef = useRef(null);
+  const [tempFiles, setTempFiles] = useState([]);
+  const fileInputRef = useRef(null);
+  const [chatWithoutSearch, setChatWithoutSearch] = useState(false);
 
 
   {/* Searches the DB for results and display them in boxes */}
@@ -298,8 +301,22 @@ export default function Search() {
     setResultsIsPinned(updatedResultsIsPinned);
   };
 
+  const handleTemporaryFileButtonClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
 
-  {/* Three methods together: Takes all checked boxes and tells the LLM to generate a summary based off of it
+  const handleTemporaryFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) setTempFiles(prev => [...prev, file]);
+  };
+
+  const handleDeleteTempFile = (fileName) => {
+    setTempFiles(prev => prev.filter(file => file.name !== fileName));
+  };
+
+
+
+  {/* Four methods together: Takes all checked boxes and tells the LLM to generate a summary based off of it
       1: create a new Chat object*/}
   const createNewChat = () => {
     console.log('Generating text with prompt:', prompt);
@@ -323,15 +340,24 @@ export default function Search() {
     if (chatIsInitialized && chat) {
       giveContextToChat();
       setChatIsInitialized(false);
-      if (results.length > 0) {
+      if (chatWithoutSearch && results.length > 0) {
         setAutoTextNotification({ message: <>Diese Zusammenfassung wird automatisch generiert. Für <b>bessere</b> Antworten, versuche die Ergebnisse links manuell auszuwählen oder den Prompt anzupassen!</>, color: 'bg-yellow-600' });
       }
+      setChatWithoutSearch(false);
     }
   }, [chatIsInitialized, chat]);
 
   {/* 2: give the chat context (the checked boxes) */}
   const giveContextToChat = () => {
     setIsGenerating(true);
+
+    console.log('Current chat:', chat);
+    if (chat === null) {
+      setChatWithoutSearch(true);
+      createNewChat();
+      return;
+    }
+
     console.log('Giving context ', resultsIsChecked, ' to chat: ', chat);
     const resultIds = []
     for (let i = 0; i < results.length; i++) {
@@ -340,7 +366,7 @@ export default function Search() {
       }
     }
     console.log('Selected result IDs:', resultIds);
-    if (resultIds.length === 0) {
+    if (resultIds.length === 0 && tempFiles.length === 0) {
       alert('Please select at least one result to generate text.');
       return;
     }
@@ -354,13 +380,40 @@ export default function Search() {
         alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
       } else {
         console.log('API called successfully.');
-        sendPromptToChat();
+        checkForAdditionalContext();
       }
     });
   }
 
-  {/* 3: send the prompt to the chat */}
-  const sendPromptToChat = () => {
+  {/* 3: check if there are temporary files to upload as additional context */}
+  const checkForAdditionalContext = () => {
+    if (tempFiles.length === 0) {
+      sendPromptToChat(null);
+      return;
+    }
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    const uids = [];
+    
+    tempFiles.forEach((file, index) => {
+      let opts = {'temporary': true};
+      apiInstance.uploadFile(file, opts, (error, data, response) => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log('API called successfully. Returned data: ' + data.id);
+          uids.push(data.id);
+        }
+        console.log("uids so far: ", uids);
+        if (uids.length === tempFiles.length) {
+          sendPromptToChat(uids);
+        }
+      });
+    });
+  }
+
+  {/* 4: send the prompt to the chat */}
+  const sendPromptToChat = (tempFileIds) => {
     console.log('Generating text with prompt: ', prompt);
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -368,6 +421,9 @@ export default function Search() {
     let chatMessage = new CivicSage.ChatMessage(); // ChatMessage |     
     chatMessage.role = 'user';
     chatMessage.content = prompt;
+    if (tempFileIds && tempFileIds.length > 0) {
+      chatMessage.files = tempFileIds;
+    }
     apiInstance.sendMessage(chat.chatId, chatMessage, (error, data, response) => {
         setIsGenerating(false);
       if (error) {
@@ -956,6 +1012,28 @@ export default function Search() {
                 </div>
               </div>
 
+              <span>
+                {tempFiles.length > 0 && (
+                  <>
+                    Dateien als Kontext:&nbsp;
+                    {tempFiles.map(file => (
+                      <span key={file.name} className="inline-flex items-center mr-2">
+                        {file.name}
+                        <button
+                          type="button"
+                          className="ml-1 text-xs text-red-500 hover:text-red-700 px-1"
+                          aria-label={`Datei ${file.name} entfernen`}
+                          onClick={() => handleDeleteTempFile(file.name)}
+                          style={{ fontWeight: 'bold', lineHeight: 1 }}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </>
+                )}
+              </span>
+
               <form
                 className="flex flex-row items-center"
                 onSubmit={(e) => { e.preventDefault(); giveContextToChat(); }}
@@ -970,28 +1048,22 @@ export default function Search() {
                     aria-label="Prompt für die Textgenerierung"
                   />
                   {/* Paperclip Button */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleTemporaryFileUpload}
+                    className="hidden"
+                  />
                   <button
                     type="button"
                     className="absolute top-0 right-0 p-1"
                     title="Dokument hochladen"
                     aria-label="Dokument hochladen"
-                    //onClick={handleUploadClick}
+                    onClick={handleTemporaryFileButtonClick}
                     style={{ minWidth: 32, minHeight: 32 }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16.5 6.5l-7.5 7.5a3 3 0 104.24 4.24l7.5-7.5a5 5 0 10-7.07-7.07l-9 9"
-                      />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.5l-7.5 7.5a3 3 0 104.24 4.24l7.5-7.5a5 5 0 10-7.07-7.07l-9 9"/>
                     </svg>
                   </button>
                 </div>
