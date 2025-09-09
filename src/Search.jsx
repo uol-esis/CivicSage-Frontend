@@ -201,11 +201,11 @@ export default function Search() {
     }
     for (const def of defaultPrompts) {
       if (prompt.startsWith(def)) {
-        setPrompt((defaultPrompt + prompt.slice(def.length)).trim());
+        setPrompt((defaultPrompt + prompt.slice(def.length)).trim() + '\n');
         return;
       }
     }
-    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim());
+    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim() + '\n');
   }, [promptType]);
 
   useEffect(() => {
@@ -500,10 +500,7 @@ export default function Search() {
       }
     }
     console.log('Selected result IDs:', resultIds);
-    if (resultIds.length === 0 && tempFiles.length === 0) {
-      alert('Please select at least one result to generate text.');
-      return;
-    }
+
     chat.embeddings = resultIds;
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -536,7 +533,7 @@ export default function Search() {
           console.error(error);
         } else {
           console.log('API called successfully. Returned data: ' + data.id);
-          uids.push(data.id);
+          uids.push({ fileId: data.id, fileName: file.name });
         }
         console.log("uids so far: ", uids);
         if (uids.length === tempFiles.length) {
@@ -1052,7 +1049,7 @@ export default function Search() {
                                 <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-9 9"/>
                                 </svg>
-                                File IDs: {msg.files}
+                                Datei(en): {msg.files.map(f => f.fileName).join(', ')}
                               </div>
                             )}
                           </div>
@@ -1071,7 +1068,7 @@ export default function Search() {
                                 <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-9 9"/>
                                 </svg>
-                                Files: {tempFiles.map(file => file.name).join(', ')}
+                                Datei(en): {tempFiles.map(file => file.name).join(', ')}
                               </div>
                             )}
                           </div>
@@ -1258,6 +1255,7 @@ export default function Search() {
                   />
                 </div>
                 <div className="flex flex-col">
+                  {/* Paperclip Button */}
                   <button
                     type="button"
                     className="flex h-[3.25rem] px-4 cursor-pointer justify-center items-center rounded-tr border border-l-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
@@ -1270,16 +1268,17 @@ export default function Search() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.5l-7.5 7.5a3 3 0 104.24 4.24l7.5-7.5a5 5 0 10-7.07-7.07l-9 9"/>
                     </svg>
                   </button>
+                  {/* Submit Button */}
                   <button
                     type="submit"
                     className="bg-blue-700 text-white px-4 h-[3.25rem] rounded-br cursor-pointer disabled:opacity-50"
                     onClick={() => setAutoTextNotification(null)}
-                    disabled={isGenerating || results.length === 0 && tempFiles.length === 0}
+                    disabled={isGenerating || (results.length === 0 && tempFiles.length === 0 && !chat)}
                     aria-label="Text generieren"
                     title={
                       isGenerating
                         ? 'Text wird gerade generiert...'
-                        : (results.length === 0 && tempFiles.length === 0)
+                        : (results.length === 0 && tempFiles.length === 0 && !chat)
                           ? 'Bitte suche nach mindestens einem Ergebnis oder füge eine Datei hinzu.'
                           : undefined
                     }
