@@ -15,7 +15,7 @@ export default function Search() {
   const [allChecked, setAllChecked] = useState(true);
   const [allPinned, setAllPinned] = useState(false);
   const [pinnedResults, setPinnedResults] = useState([]);
-  const [prompt, setPrompt] = useState('Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse!');
+  const [prompt, setPrompt] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultCount, setResultCount] = useState(5); // Default results per page
@@ -41,8 +41,14 @@ export default function Search() {
   const fileInputRef = useRef(null);
   const [chatWithoutSearch, setChatWithoutSearch] = useState(false);
   const [promptType, setPromptType] = useState('summary');
-
-
+  const [defaultPrompts] = useState([
+    "Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse, um die folgende Frage zu beantworten:",
+    "Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen, um die folgende Frage zu beantworten:",
+    "Beantworte die folgende Frage, indem du die ausgewählten Ergebnisse so erklärst, dass ich sie ohne jegliches Vorwissen verstehen kann:",
+    "Beantworte die folgende Frage, indem du die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze) kürzt:"
+  ]);
+  const [firstTimeLoaded, setFirstTimeLoaded] = useState(true);
+ 
 
   {/* Searches the DB for results and display them in boxes */}
   const handleSearch = (page = 0) => {
@@ -161,26 +167,59 @@ export default function Search() {
     let promptText = '';
     switch (promptType) {
       case 'summary':
-        promptText = 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse, um die folgende Frage zu beantworten: \n' + query;
+        promptText = defaultPrompts[0] + '\n' + query;
         break;
       case 'bullets':
-        promptText = 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen, um die folgende Frage zu beantworten: \n' + query;
+        promptText = defaultPrompts[1] + '\n' + query;
         break;
       case 'explain':
-        promptText = 'Beantworte die folgende Frage, indem du die ausgewählten Ergebnisse so erklärst, dass ich sie ohne jegliches Vorwissen verstehen kann: \n' + query;
+        promptText = defaultPrompts[2] + '\n' + query;
         break;
       case 'short':
-        promptText = 'Beantworte die folgende Frage, indem du die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze) kürzt: \n' + query;
-        break;
-      case 'translate':
-        promptText = 'Übersetze deine letzte Antwort ins Englische!';
+        promptText = defaultPrompts[3] + '\n' + query;
         break;
       default:
-        promptText = '';
+        promptText = query;
     }
     setPrompt(promptText);
-  }, [promptType, query]);
+  }, [query]);
 
+  useEffect(() => {
+    let defaultPrompt = '';
+    switch (promptType) {
+      case 'summary':
+        defaultPrompt = defaultPrompts[0];
+        break;
+      case 'bullets':
+        defaultPrompt = defaultPrompts[1];
+        break;
+      case 'explain':
+        defaultPrompt = defaultPrompts[2];
+        break;
+      case 'short':
+        defaultPrompt = defaultPrompts[3];
+    }
+    for (const def of defaultPrompts) {
+      if (prompt.startsWith(def)) {
+        setPrompt((defaultPrompt + prompt.slice(def.length)).trim());
+        return;
+      }
+    }
+    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim())nn ;
+  }, [promptType]);
+
+  useEffect(() => {
+    if (firstTimeLoaded) {
+      setFirstTimeLoaded(false);
+      return;
+    }
+    if (promptType === '') return; // Do nothing if no prompt type is selected
+    
+    let noButtonHighlighted = !defaultPrompts.some(def => prompt.startsWith(def));
+    if (noButtonHighlighted) {
+      setPromptType('');
+    };
+  }, [prompt]);
 
   const handleShowHistory = () => {
     const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -1021,7 +1060,7 @@ export default function Search() {
                   <div className="flex flex-row flex-wrap mb-1 gap-1">
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse, um die folgende Frage zu beantworten: \n' + query
+                        ${prompt.startsWith(defaultPrompts[0])
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
@@ -1032,7 +1071,7 @@ export default function Search() {
                     </button>
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen, um die folgende Frage zu beantworten: \n' + query
+                        ${prompt.startsWith(defaultPrompts[1])
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
@@ -1043,7 +1082,7 @@ export default function Search() {
                     </button>
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Beantworte die folgende Frage, indem du die ausgewählten Ergebnisse so erklärst, dass ich sie ohne jegliches Vorwissen verstehen kann: \n' + query
+                        ${prompt.startsWith(defaultPrompts[2])
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
@@ -1054,7 +1093,7 @@ export default function Search() {
                     </button>
                     <button
                       className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Beantworte die folgende Frage, indem du die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze) kürzt: \n' + query
+                        ${prompt.startsWith(defaultPrompts[3])
                           ? 'bg-blue-100 text-blue-700 border-blue-300'
                           : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
                       `}
@@ -1063,17 +1102,13 @@ export default function Search() {
                     >
                       Kurz
                     </button>
-                    {/*<button
-                      className={`px-3 py-1 rounded-full font-semibold border transition
-                        ${prompt === 'Übersetze deine letzte Antwort ins Englische!'
-                          ? 'bg-blue-100 text-blue-700 border-blue-300'
-                          : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
-                      `}
-                      onClick={() => setPromptType('translate')}
+                    <button
+                      className='px-3 py-1 rounded-full font-semibold border transition bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200' 
+                      onClick={() => setPromptType('-')}
                       type="button"
                     >
-                      Übersetzen
-                    </button>*/}
+                      -
+                    </button>
                   </div>
                 )}
                 <div className="flex flex-row justify-end flex-1">
