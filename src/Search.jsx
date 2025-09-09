@@ -205,7 +205,7 @@ export default function Search() {
         return;
       }
     }
-    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim())nn ;
+    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim());
   }, [promptType]);
 
   useEffect(() => {
