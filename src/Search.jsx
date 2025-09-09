@@ -433,7 +433,22 @@ export default function Search() {
     setTempFiles(prev => prev.filter(file => file.name !== fileName));
   };
 
-
+  // Create a new chat without starting it immediately
+  const handleNewChat = () => {
+    console.log("Starting new chat...");
+    const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
+    let apiInstance = new CivicSage.DefaultApi(client);
+    let opts = {};
+    apiInstance.getChat(opts, (error, data, response) => {
+      if (error) {
+        console.error(error);
+        alert('Fehler bei der Generierung des neuen Chats. Bitte versuchen Sie es erneut.');
+      } else {
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+        setChat(data);
+      }
+    });
+  };
 
   {/* Four methods together: Takes all checked boxes and tells the LLM to answer the prompt based off of it
       1: create a new Chat object*/}
@@ -446,7 +461,7 @@ export default function Search() {
       if (error) {
         setIsGenerating(false);
         console.error(error);
-        alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
+        alert('Fehler bei der Generierung des Chats. Bitte versuchen Sie es erneut.');
       } else {
         console.log('API called successfully. Returned data: ' + JSON.stringify(data));
         setChat(data);
@@ -485,10 +500,7 @@ export default function Search() {
       }
     }
     console.log('Selected result IDs:', resultIds);
-    if (resultIds.length === 0 && tempFiles.length === 0) {
-      alert('Please select at least one result to generate text.');
-      return;
-    }
+
     chat.embeddings = resultIds;
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -521,7 +533,7 @@ export default function Search() {
           console.error(error);
         } else {
           console.log('API called successfully. Returned data: ' + data.id);
-          uids.push(data.id);
+          uids.push({ fileId: data.id, fileName: file.name });
         }
         console.log("uids so far: ", uids);
         if (uids.length === tempFiles.length) {
@@ -560,6 +572,12 @@ export default function Search() {
       }
     });
   }
+
+  useEffect(() => {
+    if (!isGenerating) {
+      setTempFiles([]); // Clear temporary files after upload
+    }
+  }, [isGenerating]);
 
   useEffect(() => {
     if (lastMessageRef.current) {
@@ -1025,6 +1043,15 @@ export default function Search() {
                             }}
                           >
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            {/* Show temp file indicator if files were added */}
+                            {Array.isArray(msg.files) && msg.files.length > 0 && (
+                              <div className="mt-2 flex items-center text-xs text-gray-500">
+                                <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-9 9"/>
+                                </svg>
+                                Datei(en): {msg.files.map(f => f.fileName).join(', ')}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1035,6 +1062,15 @@ export default function Search() {
                         <div className="flex mb-2 justify-end">
                           <div className="max-w-[95%] px-4 py-2 rounded-lg shadow bg-blue-100 text-blue-900 rounded-br-none" style={{ wordBreak: 'break-word' }}>
                             <ReactMarkdown>{prompt}</ReactMarkdown>
+                            {/* Show temp file indicator if files were added */}
+                            {Array.isArray(tempFiles) && tempFiles.length > 0 && (
+                              <div className="mt-2 flex items-center text-xs text-gray-500">
+                                <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-9 9"/>
+                                </svg>
+                                Datei(en): {tempFiles.map(file => file.name).join(', ')}
+                              </div>
+                            )}
                           </div>
                         </div>
                         {/* Show "Generiere Text..." as assistant bubble */}
@@ -1146,18 +1182,10 @@ export default function Search() {
               </span>
 
               <form
-                className="flex flex-row items-center"
+                className="flex flex-row items-stretch"
                 onSubmit={(e) => { e.preventDefault(); giveContextToChat(); }}
               >
-                <div className="relative w-full">
-                  <textarea
-                    value={prompt}
-                    onChange={e => setPrompt(e.target.value)}
-                    placeholder="Generiere einen Text basierend auf den ausgewählten Ergebnissen!"
-                    className="border border-gray-300 px-4 py-2 w-full h-[6.5rem] rounded-l resize-none overflow-y-auto outline-none focus:ring-2 ring-blue-500"
-                    rows={1}
-                    aria-label="Prompt für die Textgenerierung"
-                  />
+                <div className='flex flex-col'>
                   {/* Paperclip Button */}
                   <input
                     type="file"
@@ -1167,23 +1195,19 @@ export default function Search() {
                   />
                   <button
                     type="button"
-                    className="absolute top-0 right-0 p-1"
-                    title="Dokument hinzufügen"
-                    aria-label="Dokument hinzufügen"
-                    onClick={handleTemporaryFileButtonClick}
-                    style={{ minWidth: 32, minHeight: 32 }}
+                    className="text-gray-800 text-xl font-bold flex h-[3.25rem] px-2 cursor-pointer justify-center items-center rounded-tl border border-r-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                    onClick={() => handleNewChat()}
+                    disabled={isGenerating || chat && chat.messages.length === 0}
+                    aria-label="Neuen Chat anfangen"
+                    title="Neuen Chat anfangen"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.5l-7.5 7.5a3 3 0 104.24 4.24l7.5-7.5a5 5 0 10-7.07-7.07l-9 9"/>
-                    </svg>
+                    +
                   </button>
-                </div>
-                <div className="flex flex-col">
                   {/* Text History */}
                   <Menu as="div" className="relative w-full inline-block text-left">
                     {/* Dropdown Button */}
                     <MenuButton
-                      className="flex bg-gray-500 text-white px-2 py-2 h-[3.25rem] w-full rounded-r cursor-pointer justify-center items-center"
+                      className="flex text-white h-[3.25rem] px-2 cursor-pointer justify-center items-center rounded-bl border border-r-0 border-gray-500 bg-gray-500 disabled:opacity-50"
                       onClick={handleShowChatHistory}
                       title="Textverlauf"
                       aria-label="Textverlauf"
@@ -1194,7 +1218,7 @@ export default function Search() {
                     </MenuButton>
 
                     {/* Dropdown Content */}
-                    <MenuItems className="absolute right-0 w-[calc(30vw-4rem)] bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4 outline-none">
+                    <MenuItems className="absolute left-0 w-[calc(30vw-4rem)] z-10 bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4 outline-none">
 
                       <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
                       {chatHistory.length > 0 ? (
@@ -1219,16 +1243,42 @@ export default function Search() {
                       )}
                     </MenuItems>
                   </Menu>
+                </div>
+                <div className="relative w-full">
+                  <textarea
+                    value={prompt}
+                    onChange={e => setPrompt(e.target.value)}
+                    placeholder="Generiere einen Text basierend auf den ausgewählten Ergebnissen!"
+                    className="border border-gray-300 px-4 py-2 w-full h-[6.5rem] resize-none overflow-y-auto outline-none focus:ring-2 ring-blue-500"
+                    rows={1}
+                    aria-label="Prompt für die Textgenerierung"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  {/* Paperclip Button */}
+                  <button
+                    type="button"
+                    className="flex h-[3.25rem] px-4 cursor-pointer justify-center items-center rounded-tr border border-l-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                    title="Dokument hinzufügen"
+                    aria-label="Dokument hinzufügen"
+                    onClick={handleTemporaryFileButtonClick}
+                    style={{ minWidth: 32, minHeight: 32 }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.5l-7.5 7.5a3 3 0 104.24 4.24l7.5-7.5a5 5 0 10-7.07-7.07l-9 9"/>
+                    </svg>
+                  </button>
+                  {/* Submit Button */}
                   <button
                     type="submit"
-                    className="bg-blue-700 text-white px-4 py-2 h-[3.25rem] rounded-r cursor-pointer disabled:opacity-50"
+                    className="bg-blue-700 text-white px-4 h-[3.25rem] rounded-br cursor-pointer disabled:opacity-50"
                     onClick={() => setAutoTextNotification(null)}
-                    disabled={isGenerating || results.length === 0 && tempFiles.length === 0}
+                    disabled={isGenerating || (results.length === 0 && tempFiles.length === 0 && !chat)}
                     aria-label="Text generieren"
                     title={
                       isGenerating
                         ? 'Text wird gerade generiert...'
-                        : (results.length === 0 && tempFiles.length === 0)
+                        : (results.length === 0 && tempFiles.length === 0 && !chat)
                           ? 'Bitte suche nach mindestens einem Ergebnis oder füge eine Datei hinzu.'
                           : undefined
                     }
@@ -1236,7 +1286,9 @@ export default function Search() {
                     {isGenerating ? (
                       <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
                     ) : (
-                      'Los'
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12l14-7-7 14-2-5-5-2z" />
+                      </svg>
                     )}
                   </button>
                 </div>
