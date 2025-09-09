@@ -577,6 +577,12 @@ export default function Search() {
   }
 
   useEffect(() => {
+    if (!isGenerating) {
+      setTempFiles([]); // Clear temporary files after upload
+    }
+  }, [isGenerating]);
+
+  useEffect(() => {
     if (lastMessageRef.current) {
       lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -1040,6 +1046,15 @@ export default function Search() {
                             }}
                           >
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            {/* Show temp file indicator if files were added */}
+                            {Array.isArray(msg.files) && msg.files.length > 0 && (
+                              <div className="mt-2 flex items-center text-xs text-gray-500">
+                                <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-9 9"/>
+                                </svg>
+                                File IDs: {msg.files}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1050,6 +1065,15 @@ export default function Search() {
                         <div className="flex mb-2 justify-end">
                           <div className="max-w-[95%] px-4 py-2 rounded-lg shadow bg-blue-100 text-blue-900 rounded-br-none" style={{ wordBreak: 'break-word' }}>
                             <ReactMarkdown>{prompt}</ReactMarkdown>
+                            {/* Show temp file indicator if files were added */}
+                            {Array.isArray(tempFiles) && tempFiles.length > 0 && (
+                              <div className="mt-2 flex items-center text-xs text-gray-500">
+                                <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-9 9"/>
+                                </svg>
+                                Files: {tempFiles.map(file => file.name).join(', ')}
+                              </div>
+                            )}
                           </div>
                         </div>
                         {/* Show "Generiere Text..." as assistant bubble */}
@@ -1174,15 +1198,13 @@ export default function Search() {
                   />
                   <button
                     type="button"
-                    className="flex h-[3.25rem] px-2 cursor-pointer justify-center items-center rounded-tl border border-r-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
-                    title="Dokument hinzufügen"
-                    aria-label="Dokument hinzufügen"
-                    onClick={handleTemporaryFileButtonClick}
-                    style={{ minWidth: 32, minHeight: 32 }}
+                    className="text-gray-800 text-xl font-bold flex h-[3.25rem] px-2 cursor-pointer justify-center items-center rounded-tl border border-r-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                    onClick={() => handleNewChat()}
+                    disabled={isGenerating || chat && chat.messages.length === 0}
+                    aria-label="Neuen Chat anfangen"
+                    title="Neuen Chat anfangen"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.5l-7.5 7.5a3 3 0 104.24 4.24l7.5-7.5a5 5 0 10-7.07-7.07l-9 9"/>
-                    </svg>
+                    +
                   </button>
                   {/* Text History */}
                   <Menu as="div" className="relative w-full inline-block text-left">
@@ -1238,13 +1260,15 @@ export default function Search() {
                 <div className="flex flex-col">
                   <button
                     type="button"
-                    className="text-gray-800 text-xl font-bold flex h-[3.25rem] px-4 cursor-pointer justify-center items-center rounded-tr border border-l-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
-                    onClick={() => handleNewChat()}
-                    disabled={isGenerating || chat && chat.messages.length === 0}
-                    aria-label="Neuen Chat anfangen"
-                    title="Neuen Chat anfangen"
+                    className="flex h-[3.25rem] px-4 cursor-pointer justify-center items-center rounded-tr border border-l-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                    title="Dokument hinzufügen"
+                    aria-label="Dokument hinzufügen"
+                    onClick={handleTemporaryFileButtonClick}
+                    style={{ minWidth: 32, minHeight: 32 }}
                   >
-                    +
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 6.5l-7.5 7.5a3 3 0 104.24 4.24l7.5-7.5a5 5 0 10-7.07-7.07l-9 9"/>
+                    </svg>
                   </button>
                   <button
                     type="submit"
