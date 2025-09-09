@@ -201,11 +201,11 @@ export default function Search() {
     }
     for (const def of defaultPrompts) {
       if (prompt.startsWith(def)) {
-        setPrompt((defaultPrompt + prompt.slice(def.length)).trim());
+        setPrompt((defaultPrompt + prompt.slice(def.length)).trim() + '\n');
         return;
       }
     }
-    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim());
+    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim() + '\n');
   }, [promptType]);
 
   useEffect(() => {
