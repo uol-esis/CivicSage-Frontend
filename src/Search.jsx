@@ -5,6 +5,7 @@ import { data } from 'react-router-dom';
 import { Menu, MenuItem, MenuItems, MenuButton } from '@headlessui/react';
 import ReactMarkdown from 'react-markdown';
 import { q } from 'framer-motion/client';
+import './css/Search.css';
 
 
 export default function Search() {
@@ -569,10 +570,12 @@ export default function Search() {
             ...prev.messages,
             {role: "assistant", content: "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."}
           ]
-        }))      } else {
+        }))      
+      } else {
         console.log('API called successfully. Returned data: ' + data.messages);
         setChat(data);
         addToChatHistory(data);
+        resetPrompt();
       }
     });
   }
@@ -589,6 +592,24 @@ export default function Search() {
     }
   }, [chat?.messages?.length, isGenerating]); // runs when messages change
 
+  const resetPrompt = () => {
+    switch (promptType) {
+      case 'summary':
+        setPrompt(defaultPrompts[0] + '\n');
+        break;
+      case 'bullets':
+        setPrompt(defaultPrompts[1] + '\n');
+        break;
+      case 'explain':
+        setPrompt(defaultPrompts[2] + '\n');
+        break;
+      case 'short':
+        setPrompt(defaultPrompts[3] + '\n');
+        break;
+      default:
+        setPrompt('');
+    }
+  }
 
   function showNotification(message, color = 'bg-green-500') {
     setNotification({ message, color });
@@ -1047,7 +1068,9 @@ export default function Search() {
                               wordBreak: 'break-word',
                             }}
                           >
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            <div className="markdown">
+                              <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            </div>
                             {/* Show temp file indicator if files were added */}
                             {Array.isArray(msg.files) && msg.files.length > 0 && (
                               <div className="mt-2 flex items-center text-xs text-gray-500">
@@ -1066,7 +1089,9 @@ export default function Search() {
                         {/* Show the current prompt as user bubble */}
                         <div className="flex mb-2 justify-end">
                           <div className="max-w-[95%] px-4 py-2 rounded-lg shadow bg-blue-100 text-blue-900 rounded-br-none" style={{ wordBreak: 'break-word' }}>
-                            <ReactMarkdown>{prompt}</ReactMarkdown>
+                            <div className="markdown">
+                              <ReactMarkdown>{prompt}</ReactMarkdown>
+                            </div>
                             {/* Show temp file indicator if files were added */}
                             {Array.isArray(tempFiles) && tempFiles.length > 0 && (
                               <div className="mt-2 flex items-center text-xs text-gray-500">
@@ -1092,7 +1117,7 @@ export default function Search() {
                     )}
                   </>
                 ) : (
-                  "Hier wird der generierte Text angezeigt..."
+                  "Sie können einen Chat beginnen, indem Sie eine Suche starten oder unten einen Prompt eingeben."
                 )}
               </div>
               

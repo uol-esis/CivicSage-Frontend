@@ -1,0 +1,13 @@
+.markdown > * {
+  all: revert;
+}
+
+.markdown > p {
+  white-space: pre-line;
+}
+
+.markdown ul,
+.markdown ol,
+.markdown li {
+  white-space: normal;
+}
