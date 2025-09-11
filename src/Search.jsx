@@ -201,11 +201,15 @@ export default function Search() {
     }
     for (const def of defaultPrompts) {
       if (prompt.startsWith(def)) {
-        setPrompt((defaultPrompt + prompt.slice(def.length)).trim() + '\n');
+        let newPrompt = (defaultPrompt + prompt.slice(def.length)).trim();
+        if (newPrompt !== '') newPrompt += '\n';
+        setPrompt(newPrompt);
         return;
       }
     }
-    setPrompt((defaultPrompt + '\n' + (prompt ? prompt : '')).trim() + '\n');
+    let newPrompt = (defaultPrompt + '\n' + (prompt ? prompt : '')).trim();
+    if (newPrompt !== '') newPrompt += '\n';
+    setPrompt(newPrompt);
   }, [promptType]);
 
   useEffect(() => {
@@ -1248,11 +1252,12 @@ export default function Search() {
                     </MenuItems>
                   </Menu>
                 </div>
+                {/* Textarea */}
                 <div className="relative w-full">
                   <textarea
                     value={prompt}
                     onChange={e => setPrompt(e.target.value)}
-                    placeholder="Generiere einen Text basierend auf den ausgewählten Ergebnissen!"
+                    placeholder="Gib hier deine Anfrage an die KI ein!"
                     className="border border-gray-300 px-4 py-2 w-full h-[6.5rem] resize-none overflow-y-auto outline-none focus:ring-2 ring-blue-500"
                     rows={1}
                     aria-label="Prompt für die Textgenerierung"
@@ -1277,7 +1282,6 @@ export default function Search() {
                     type="submit"
                     className="bg-blue-700 text-white px-4 h-[3.25rem] rounded-br cursor-pointer disabled:opacity-50"
                     onClick={() => setAutoTextNotification(null)}
-                    disabled={isGenerating || (results.length === 0 && tempFiles.length === 0 && !chat)}
                     aria-label="Text generieren"
                     title={
                       isGenerating
