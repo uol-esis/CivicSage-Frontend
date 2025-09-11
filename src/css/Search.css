@@ -11,3 +11,8 @@
 .markdown li {
   white-space: normal;
 }
+
+.filter-placeholder::placeholder {
+  color: #6b7280;        /* Change color */
+  font-size: 0.75rem; 
+}

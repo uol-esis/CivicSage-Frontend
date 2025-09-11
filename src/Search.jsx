@@ -810,28 +810,31 @@ export default function Search() {
               ▼
             </button>
             {showFilterMenu && (
-              <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-72 z-50 outline-none">
+              <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-80 z-50 outline-none">
                 <div>
+                  Suchergebnisse einschränken:
                   <div className="mb-2">
                     <label className="block text-sm font-medium text-gray-700">Titel</label>
                     <input
-                      className="border border-gray-300 rounded px-2 py-1 w-full outline-none focus:ring-2 ring-blue-500"
+                      className="border border-gray-300 rounded px-2 py-1 w-full outline-none focus:ring-2 ring-blue-500 filter-placeholder"
                       value={filterTitle}
                       onChange={e => setFilterTitle(e.target.value)}
                       disabled={filterUrl.trim() !== ''}
                       aria-label="Titel Filter"
                       tabIndex={0}
+                      placeholder={"Nur Inhalte mit diesem exakten Titel durchsuchen"}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Webseite</label>
                     <input
-                      className="border border-gray-300 rounded px-2 pt-1 w-full outline-none focus:ring-2 ring-blue-500"
+                      className="border border-gray-300 rounded px-2 pt-1 w-full outline-none focus:ring-2 ring-blue-500 filter-placeholder"
                       value={filterUrl}
                       onChange={e => setFilterUrl(e.target.value)}
                       disabled={filterTitle.trim() !== ''}
                       aria-label="Webseite Filter"
                       tabIndex={0}
+                      placeholder={"Nur Inhalte mit dieser exakten URL durchsuchen"}
                     />
                   </div>
                 </div>
