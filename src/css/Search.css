@@ -12,6 +12,39 @@
   white-space: normal;
 }
 
+.markdown a {
+  color: #2563eb;         /* Tailwind blue-600 */
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.markdown a:hover {
+  color: #1d4ed8;         /* Tailwind blue-700 */
+}
+
+.markdown img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0.5em 0;
+}
+
+.markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  font-size: 1em;
+}
+.markdown th, .markdown td {
+  border: 1px solid #bbb;
+  padding: 0.5em 1em;
+  text-align: left;
+}
+.markdown th {
+  background: #e5e7eb;
+  font-weight: bold;
+}
+
 .filter-placeholder::placeholder {
   color: #6b7280;        /* Change color */
   font-size: 0.75rem; 

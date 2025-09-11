@@ -4,6 +4,7 @@ import * as CivicSage from 'civic_sage';
 import { data } from 'react-router-dom';
 import { Menu, MenuItem, MenuItems, MenuButton } from '@headlessui/react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'
 import { q } from 'framer-motion/client';
 import './css/Search.css';
 
@@ -560,6 +561,7 @@ export default function Search() {
     if (tempFileIds && tempFileIds.length > 0) {
       chatMessage.files = tempFileIds;
     }
+    console.log('user message:', JSON.stringify(chatMessage.content));
     apiInstance.sendMessage(chat.chatId, chatMessage, (error, data, response) => {
         setIsGenerating(false);
       if (error) {
@@ -572,7 +574,7 @@ export default function Search() {
           ]
         }))      
       } else {
-        console.log('API called successfully. Returned data: ' + data.messages);
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data.messages));
         setChat(data);
         addToChatHistory(data);
         resetPrompt();
@@ -1072,7 +1074,13 @@ export default function Search() {
                             }}
                           >
                             <div className="markdown">
-                              <ReactMarkdown>{msg.content}</ReactMarkdown>
+                              <ReactMarkdown 
+                                remarkPlugins={[remarkGfm]}
+                                skipHtml={false}
+                                breaks
+                              >
+                                {msg.content}
+                              </ReactMarkdown>
                             </div>
                             {/* Show temp file indicator if files were added */}
                             {Array.isArray(msg.files) && msg.files.length > 0 && (
