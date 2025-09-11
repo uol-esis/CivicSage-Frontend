@@ -776,6 +776,7 @@ export default function Search() {
           {/* Dropdown with search filter */}
           <div className="relative inline-block text-left">
             <button
+              type='button'
               className="bg-blue-700 text-white px-2 py-2 rounded-r cursor-pointer"
               title="Filter"
               aria-label="Filter"
