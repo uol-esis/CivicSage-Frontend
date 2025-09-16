@@ -82,7 +82,7 @@ export default function Upload() {
             // If parsing fails, keep the default error message
           }
           alert(errorMsg);
-          uids[index] = undefined; // Mark this index as failed
+          uids.push(undefined); // Mark this index as failed
         } else {
           console.log(`File ${file.name} uploaded successfully. UID: ${data.id}`);
           uids.push(data.id);
