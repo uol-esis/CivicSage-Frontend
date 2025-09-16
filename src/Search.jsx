@@ -1227,7 +1227,7 @@ export default function Search() {
                 onSubmit={(e) => { e.preventDefault(); giveContextToChat(); }}
               >
                 <div className='flex flex-col'>
-                  {/* Paperclip Button */}
+                  {/* Neuer Chat Button */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -1236,7 +1236,7 @@ export default function Search() {
                   />
                   <button
                     type="button"
-                    className="flex h-[3.25rem] px-2 cursor-pointer justify-center items-center rounded-tl border border-r-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                    className="flex h-[3.25rem] w-full px-2 cursor-pointer justify-center items-center rounded-tl border border-r-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
                     onClick={() => handleNewChat()}
                     disabled={isGenerating || chat && chat.messages.length === 0}
                     aria-label="Neuen Chat anfangen"
@@ -1251,7 +1251,7 @@ export default function Search() {
                   <Menu as="div" className="relative w-full inline-block text-left">
                     {/* Dropdown Button */}
                     <MenuButton
-                      className="flex text-white h-[3.25rem] px-2 cursor-pointer justify-center items-center rounded-bl border border-r-0 border-gray-500 bg-gray-500 disabled:opacity-50"
+                      className="flex text-white h-[3.25rem] w-full px-2 cursor-pointer justify-center items-center rounded-bl border border-r-0 border-gray-500 bg-gray-500 disabled:opacity-50"
                       onClick={handleShowChatHistory}
                       title="Textverlauf"
                       aria-label="Textverlauf"
