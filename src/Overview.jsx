@@ -4,8 +4,8 @@ import * as CivicSage from 'civic_sage';
 export default function Overview() {
   const [content, setContent] = useState([]);
   const [search, setSearch] = useState('');
-  const [notification, setNotification] = useState(null);
-  
+  const [notifications, setNotifications] = useState([]);
+  const [errorNotifications, setErrorNotifications] = useState([]);  
 
   useEffect(() => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -14,7 +14,7 @@ export default function Overview() {
     apiInstance.getAllIndexedSources({}, (error, data, response) => {
       if (error) {
         console.error(error);
-        showNotification('Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.', 'bg-red-500');
+        showErrorNotification('Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.');
         setContent([]);
       } else {
         setContent(data);
@@ -29,7 +29,7 @@ export default function Overview() {
     apiInstance.deleteIndexedSource(id, (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Der Eintrag konnte nicht gelöscht werden. Bitte versuche es später erneut.');
+        showErrorNotification('Der Eintrag konnte nicht gelöscht werden. Bitte versuche es später erneut.');
       } else {
         showNotification('Eintrag erfolgreich gelöscht.');
         setContent(prevContent => ({
@@ -42,7 +42,7 @@ export default function Overview() {
   }
 
   const handleUpdateWebsite = (ids) => {
-    //alert('Update functionality is not implemented yet. IDS: ' + ids.join(', '));
+    //showErrorNotification('Update functionality is not implemented yet. IDS: ' + ids.join(', '));
     console.log('Update functionality is not implemented yet. IDS:', ids);
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -52,67 +52,101 @@ export default function Overview() {
       apiInstance.getAllIndexedSources({}, (error, data, response) => {
         if (error) {
           console.error(error);
-          showNotification('Es gab einen Fehler beim Anzeigen der Websites. Bitte lade die Seite neu.', 'bg-red-500');
+          showErrorNotification('Es gab einen Fehler beim Anzeigen der Websites. Bitte lade die Seite neu.');
         } else {
           setContent(data);
         }
       });
       if (error) {
         console.error(error);
-        alert('Ups, da ist etwas schief gelaufen. Bitte versuche es später erneut. Alternativ, versuche weniger Websites auf einmal zu aktualisieren oder lösche die Seite manuell und lade sie erneut hoch.');
+        showErrorNotification('Ups, da ist etwas schief gelaufen. Bitte versuche es später erneut. Alternativ, versuche weniger Websites auf einmal zu aktualisieren oder lösche die Seite manuell und lade sie erneut hoch.');
       } else {
-        showNotification('Die Webseite wird gerade aktualisiert. Es kann eine Weile dauern, bis sie in der Suche verfügbar ist.', 'bg-yellow-500');
+        showNotification('Die Webseite wird gerade aktualisiert. Es kann eine Weile dauern, bis sie in der Suche verfügbar ist.', 'bg-yellow-600', 8000);
         console.log('API called successfully.');
       }
     });
   }
 
 
-const filteredFiles = content.files?.filter(
-  file =>
-    (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
-    (file.title && file.title.toLowerCase().includes(search.toLowerCase())) ||
-    (file.uploadDate &&
-      (new Date(file.uploadDate).toLocaleString('de-DE', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }).toLowerCase().includes(search.toLowerCase())
+  const filteredFiles = content.files?.filter(
+    file =>
+      (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
+      (file.title && file.title.toLowerCase().includes(search.toLowerCase())) ||
+      (file.uploadDate &&
+        (new Date(file.uploadDate).toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).toLowerCase().includes(search.toLowerCase())
+        )
       )
-    )
-) || [];
+  ) || [];
 
-const filteredWebsites = content.websites?.filter(
-  website =>
-    (website.title && website.title.toLowerCase().includes(search.toLowerCase())) ||
-    (website.url && website.url.toLowerCase().includes(search.toLowerCase())) ||
-    (website.uploadDate &&
-      (new Date(website.uploadDate).toLocaleString('de-DE', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }).toLowerCase().includes(search.toLowerCase())
+  const filteredWebsites = content.websites?.filter(
+    website =>
+      (website.title && website.title.toLowerCase().includes(search.toLowerCase())) ||
+      (website.url && website.url.toLowerCase().includes(search.toLowerCase())) ||
+      (website.uploadDate &&
+        (new Date(website.uploadDate).toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).toLowerCase().includes(search.toLowerCase())
+        )
       )
-    )
-) || [];
+  ) || [];
 
-  function showNotification(message, color = 'bg-green-500') {
-    setNotification({ message, color });
-    setTimeout(() => setNotification(null), 5000); // Hide after 5 seconds
+  function showNotification(message, color = 'bg-green-500', timer = 5000) {
+    const id = Date.now() + Math.random();
+    setNotifications(prev => [...prev, { id, message, color }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, timer);
+  }
+
+  function showErrorNotification(message) {
+    const id = Date.now() + Math.random();
+    setErrorNotifications(prev => [...prev, { id, message, color: 'bg-red-500' }]);
+    // Do not auto-hide error notifications
   }
 
   return (
   <div className="flex flex-col justify-between m-4 p-4 h-full bg-white shadow rounded-[10px]">
     <h1 className="sr-only">CivicSage – Übersichtsseite</h1>
-    {notification && (
-      <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
-        {notification.message}
-      </div>
-    )}
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+      {errorNotifications.map(n => (
+        <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
+          {n.message}
+          <button
+            className="absolute top-1 right-2 text-white text-lg font-bold"
+            onClick={() => setErrorNotifications(prev => prev.filter(e => e.id !== n.id))}
+            aria-label="Schließen"
+            type="button"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      {notifications.map(n => (
+        <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
+          {n.message}
+          <button
+            className="absolute top-1 right-2 text-white text-lg font-bold"
+            onClick={() => setNotifications(prev => prev.filter(e => e.id !== n.id))}
+            aria-label="Schließen"
+            type="button"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
     <div className="flex flex-row items-center justify-between">
       <div />
       <h2 className="text-xl font-bold text-center">

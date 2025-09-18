@@ -30,7 +30,8 @@ export default function Search() {
   const [filterUrl, setFilterUrl] = useState('');
   const [editingBookmark, setEditingBookmark] = useState(null);
   const [editingName, setEditingName] = useState('');
-  const [notification, setNotification] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [errorNotifications, setErrorNotifications] = useState([]);
   const [showSearchHelp, setShowSearchHelp] = useState(false);
   const [helpHighlight, setHelpHighlight] = useState(false);
   const [autoTextNotification, setAutoTextNotification] = useState(null);
@@ -90,10 +91,10 @@ export default function Search() {
       if (error) {
         console.error(error);
         if (error.status === 503) {
-          alert('Das temporäre Limit des LLMs wurde überschritten. Dies kann passieren, wenn zu viele Anfragen von mehreren Nutzern in kurzer Zeit gestellt werden. Bitte versuchen Sie es später erneut.');
+          showErrorNotification('Das temporäre Limit des LLMs wurde überschritten. Dies kann passieren, wenn zu viele Anfragen von mehreren Nutzern in kurzer Zeit gestellt werden. Bitte versuchen Sie es später erneut.');
         }
         else{
-          alert('Fehler bei der Suche nach Dateien. Bitte versuchen Sie es erneut.');
+          showErrorNotification('Fehler bei der Suche nach Dateien. Bitte versuchen Sie es erneut.');
         }
       } else {
         // Parse the JSON string from response.text
@@ -187,6 +188,7 @@ export default function Search() {
   }, [query]);
 
   useEffect(() => {
+    if (promptType === '') return; // Do nothing if no prompt type is selected
     let defaultPrompt = '';
     switch (promptType) {
       case 'summary':
@@ -263,7 +265,7 @@ export default function Search() {
     apiInstance.getChat({chatId: chatId}, (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Fehler beim Laden des Chats. Bitte versuchen Sie es erneut.');
+        showErrorNotification('Fehler beim Laden des Chats. Bitte versuchen Sie es erneut.');
       } else {
         console.log('API called successfully. Returned data: ' + JSON.stringify(data) + " messages: " + data.messages );
         setChat(data);
@@ -324,7 +326,7 @@ export default function Search() {
     apiInstance.getChat({chatId: item.chatId}, (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Fehler beim Laden der Zusammenfassung. Bitte versuchen Sie es erneut.');
+        showErrorNotification('Fehler beim Laden der Zusammenfassung. Bitte versuchen Sie es erneut.');
       } else {
         console.log('API called successfully. Returned data: ' + JSON.stringify(data) + " messages: " + data.messages );
         setChat(data);
@@ -448,7 +450,7 @@ export default function Search() {
     apiInstance.getChat(opts, (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Fehler bei der Generierung des neuen Chats. Bitte versuchen Sie es erneut.');
+        showErrorNotification('Fehler bei der Generierung des neuen Chats. Bitte versuchen Sie es erneut.');
       } else {
         console.log('API called successfully. Returned data: ' + JSON.stringify(data));
         setChat(data);
@@ -467,7 +469,7 @@ export default function Search() {
       if (error) {
         setIsGenerating(false);
         console.error(error);
-        alert('Fehler bei der Generierung des Chats. Bitte versuchen Sie es erneut.');
+        showErrorNotification('Fehler bei der Generierung des Chats. Bitte versuchen Sie es erneut.');
       } else {
         console.log('API called successfully. Returned data: ' + JSON.stringify(data));
         setChat(data);
@@ -514,7 +516,7 @@ export default function Search() {
       if (error) {
         setIsGenerating(false);
         console.error(error);
-        alert('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
+        showErrorNotification('Fehler bei der Generierung des Textes. Bitte versuchen Sie es erneut.');
       } else {
         console.log('API called successfully to update chat. chatID: ' + chat.chatId );
         checkForAdditionalContext();
@@ -613,20 +615,54 @@ export default function Search() {
     }
   }
 
-  function showNotification(message, color = 'bg-green-500') {
-    setNotification({ message, color });
-    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+  function showNotification(message, color = 'bg-green-500', timer = 5000) {
+    const id = Date.now() + Math.random();
+    setNotifications(prev => [...prev, { id, message, color }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, timer);
+  }
+
+  function showErrorNotification(message) {
+    const id = Date.now() + Math.random();
+    setErrorNotifications(prev => [...prev, { id, message, color: 'bg-red-500' }]);
+    // Do not auto-hide error notifications
   }
 
 
   return (
     <div className="h-screen flex flex-col">
       <h1 className="sr-only">CivicSage – Suchseite</h1>
-      {notification && (
-        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
-          {notification.message}
-        </div>
-      )}
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+        {errorNotifications.map(n => (
+          <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
+            {n.message}
+            <button
+              className="absolute top-1 right-2 text-white text-lg font-bold"
+              onClick={() => setErrorNotifications(prev => prev.filter(e => e.id !== n.id))}
+              aria-label="Schließen"
+              type="button"
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        {notifications.map(n => (
+          <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
+            {n.message}
+            <button
+              className="absolute top-1 right-2 text-white text-lg font-bold"
+              onClick={() => setNotifications(prev => prev.filter(e => e.id !== n.id))}
+              aria-label="Schließen"
+              type="button"
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
       {/* Sticky Search Bar */}
       <div className="bg-white z-10 sticky top-0 p-4 shadow">
         <form

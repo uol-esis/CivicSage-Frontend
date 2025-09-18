@@ -10,7 +10,8 @@ export default function Upload() {
   const [resetUpload, setResetUpload] = useState(false);
   const [isWebsiteButtonDisabled, setIsWebsiteButtonDisabled] = useState(false);
   const [isUploadButtonDisabled, setIsUploadButtonDisabled] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [errorNotifications, setErrorNotifications] = useState([]);
 
   /**
    * Uploads the website to the DB and indexes it
@@ -39,10 +40,10 @@ export default function Upload() {
         } catch (e) {
           // If parsing fails, keep the default error message
         }
-        alert(errorMsg);
+        showErrorNotification(errorMsg);
       } else {
         console.log('API called successfully.');
-        showNotification(`${inputValue} wird gerade zur Datenbank hinzugefügt. Es kann eine Weile dauern, bis sie in der Suche verfügbar sind.`, 'bg-yellow-500');
+        showNotification(`${inputValue} wird gerade zur Datenbank hinzugefügt. Es kann eine Weile dauern, bis sie in der Suche verfügbar sind.`, 'bg-yellow-600', 8000);
         setInputValue(''); // Clear the input field after successful submission
       }
       setIsWebsiteButtonDisabled(false); // Re-enable the button
@@ -55,7 +56,7 @@ export default function Upload() {
    */
   const handleUploadFiles = () => {
     if (selectedFiles.length === 0) {
-      alert('Please select at least one file to upload.');
+      showErrorNotification('Please select at least one file to upload.');
       return;
     }
 
@@ -73,7 +74,11 @@ export default function Upload() {
           try {
             const errObj = typeof error === 'string' ? JSON.parse(error) : error;
             if (errObj && (errObj.statusCode === 409 || errObj.status === 409)) {
-              errorMsg = `Die Datei "${file.name}" ist bereits in der Datenbank.`;
+              if (selectedFiles.length === 1) {
+                errorMsg = `Die Datei "${file.name}" ist bereits in der Datenbank.`;
+              } else {
+                errorMsg = `Die Datei "${file.name}" ist bereits in der Datenbank und wird übersprungen. Weitere Dateien werden normal hochgeladen.`;
+              }
             }
             if (errObj && (errObj.statusCode === 413 || errObj.status === 413)) {
             errorMsg = `Die hochgeladene Datei ist zu groß und konnte nicht verarbeitet werden.`;
@@ -81,7 +86,7 @@ export default function Upload() {
           } catch (e) {
             // If parsing fails, keep the default error message
           }
-          alert(errorMsg);
+          showErrorNotification(errorMsg);
           uids.push(undefined); // Mark this index as failed
         } else {
           console.log(`File ${file.name} uploaded successfully. UID: ${data.id}`);
@@ -123,10 +128,10 @@ export default function Upload() {
     apiInstance.indexFiles(indexFilesRequest,  (error, data, response) => {
       if (error) {
         console.error(error);
-        alert('Es gab einen Fehler beim Lesen der Dateien. Bitte versuche es erneut.');
+        showErrorNotification('Es gab einen Fehler beim Lesen der Dateien. Bitte versuche es erneut.');
       } else {
         console.log('Files indexed successfully.');
-        showNotification('Die Dateien werden gerade zur Datenbank hinzugefügt. Es kann eine Weile dauern, bis sie in der Suche verfügbar sind.', 'bg-yellow-500');
+        showNotification('Die Dateien werden gerade zur Datenbank hinzugefügt. Es kann eine Weile dauern, bis sie in der Suche verfügbar sind.', 'bg-yellow-600', 8000);
       }
       setSelectedFiles([]); // Clear the selected files after successful submission
       setResetUpload(r => !r); // Toggle reset state to re-render UploadComponent
@@ -134,19 +139,53 @@ export default function Upload() {
     });
   }
 
-  function showNotification(message, color = 'bg-green-500') {
-    setNotification({ message, color });
-    setTimeout(() => setNotification(null), 5000); // Hide after 5 seconds
+  function showNotification(message, color = 'bg-green-500', timer = 5000) {
+    const id = Date.now() + Math.random();
+    setNotifications(prev => [...prev, { id, message, color }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, timer);
+  }
+
+  function showErrorNotification(message) {
+    const id = Date.now() + Math.random();
+    setErrorNotifications(prev => [...prev, { id, message, color: 'bg-red-500' }]);
+    // Do not auto-hide error notifications
   }
 
   return (
   <div className="h-screen flex-1 flex-col overflow-y-auto">
     <h1 className="sr-only">CivicSage – Hochladeseite</h1>
-    {notification && (
-      <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${notification.color} text-white px-6 py-3 rounded shadow-lg z-50 transition-all`}>
-        {notification.message}
-      </div>
-    )}
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+      {errorNotifications.map(n => (
+        <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
+          {n.message}
+          <button
+            className="absolute top-1 right-2 text-white text-lg font-bold"
+            onClick={() => setErrorNotifications(prev => prev.filter(e => e.id !== n.id))}
+            aria-label="Schließen"
+            type="button"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      {notifications.map(n => (
+        <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
+          {n.message}
+          <button
+            className="absolute top-1 right-2 text-white text-lg font-bold"
+            onClick={() => setNotifications(prev => prev.filter(e => e.id !== n.id))}
+            aria-label="Schließen"
+            type="button"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
     {/* Input Field */}
     <div className="flex flex-col justify-between mt-[3vh] mx-4 p-4 min-h-[30vh] bg-white shadow rounded-[10px]">
       <h2 className="text-xl font-bold mb-4">
